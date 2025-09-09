@@ -11,7 +11,6 @@ const registerBeautician = async (req, res) => {
       id,
       availability,
       address,
-      profilePic,
       password,
     } = req.body;
 
@@ -32,7 +31,6 @@ const registerBeautician = async (req, res) => {
       id,
       availability,
       address,
-      profilePic,
       password: hashedPassword,
     });
 

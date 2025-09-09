@@ -1,13 +1,15 @@
 const express = require('express');
+const {
+  verifyOTP,
+  completeProfile,
+  getProfile
+} = require('../../controllers/userController/auth');
+// const { protect } = require('../../middleware/auth');
+
 const router = express.Router();
-const { register, login } = require('../../controllers/userController/auth');
-const authMiddleware = require('../../middlewares/userAuth');
 
-router.post('/register', register);
-router.post('/login', login);
-
-router.get('/profile', authMiddleware, (req, res) => {
-  res.json({ user: req.user });
-});
+router.post('/verify-otp', verifyOTP);
+// router.put('/complete-profile', protect, completeProfile);
+// router.get('/profile', protect, getProfile);
 
 module.exports = router;

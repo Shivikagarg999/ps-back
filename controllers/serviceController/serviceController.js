@@ -1,54 +1,101 @@
 const Service = require('../../models/service/service');
+const imagekit = require('../../utils/imagekit');
 
-// ➕ Create Service
+// Create Service
 exports.createService = async (req, res) => {
   try {
-    const newService = await Service.create(req.body);
-    res.status(201).json(newService);
+    let imageUrl = null;
+
+    if (req.file) {
+      const uploadResponse = await imagekit.upload({
+        file: req.file.buffer,
+        fileName: `service_${Date.now()}`,
+        folder: '/services'
+      });
+      imageUrl = uploadResponse.url;
+    }
+
+    const service = await Service.create({
+      name: req.body.name,
+      description: req.body.description,
+      price: req.body.price,
+      duration: req.body.duration,
+      category: req.body.category,
+      imageUrl,
+      isPopular: req.body.isPopular || false,
+      isActive: req.body.isActive || true
+    });
+
+    res.status(201).json({ success: true, data: service });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// 📄 Get All Services
+// Get All Services (Rename from getServices to getAllServices)
 exports.getAllServices = async (req, res) => {
   try {
-    const services = await Service.find().populate('category');
-    res.status(200).json(services);
+    const services = await Service.find()
+      .populate('category', 'name');
+    res.status(200).json({ success: true, data: services });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// 📄 Get Single Service by ID
+// Get Single Service (Rename from getService to getServiceById)
 exports.getServiceById = async (req, res) => {
   try {
-    const service = await Service.findById(req.params.id).populate('category');
-    if (!service) return res.status(404).json({ message: 'Service not found' });
-    res.status(200).json(service);
+    const service = await Service.findById(req.params.id)
+      .populate('category', 'name');
+    if (!service) {
+      return res.status(404).json({ success: false, message: 'Service not found' });
+    }
+    res.status(200).json({ success: true, data: service });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// ✏️ Update Service
+// Update Service
 exports.updateService = async (req, res) => {
   try {
-    const updated = await Service.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updated) return res.status(404).json({ message: 'Service not found' });
-    res.status(200).json(updated);
+    let updateData = { ...req.body };
+
+    if (req.file) {
+      const uploadResponse = await imagekit.upload({
+        file: req.file.buffer,
+        fileName: `service_${Date.now()}`,
+        folder: '/services'
+      });
+      updateData.imageUrl = uploadResponse.url;
+    }
+
+    const service = await Service.findByIdAndUpdate(req.params.id, updateData, { 
+      new: true,
+      runValidators: true 
+    }).populate('category', 'name');
+
+    if (!service) {
+      return res.status(404).json({ success: false, message: 'Service not found' });
+    }
+
+    res.status(200).json({ success: true, data: service });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// 🗑️ Delete Service
+// Delete Service
 exports.deleteService = async (req, res) => {
   try {
-    const deleted = await Service.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: 'Service not found' });
-    res.status(200).json({ message: 'Service deleted successfully' });
+    const service = await Service.findByIdAndDelete(req.params.id);
+    if (!service) {
+      return res.status(404).json({ success: false, message: 'Service not found' });
+    }
+
+    res.status(200).json({ success: true, message: 'Service deleted' });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
