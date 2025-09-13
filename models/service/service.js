@@ -16,10 +16,10 @@ const serviceSchema = new mongoose.Schema({
     min: [0, 'Price cannot be negative']
   },
   duration: {
-    type: Number, // in minutes
+    type: Number,
     required: [true, 'Please add duration'],
     min: [15, 'Minimum duration is 15 minutes']
-  },
+  }, 
   category: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category',
@@ -36,6 +36,16 @@ const serviceSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  isIncluded: {
+    type: [String], 
+    validate: {
+      validator: function(arr) {
+        return arr.length <= 5;
+      },
+      message: "You can add maximum 5 points in isIncluded"
+    },
+    default: []
   }
 }, { timestamps: true });
 

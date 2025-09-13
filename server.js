@@ -6,6 +6,7 @@ const categoryRoutes = require("./routes/category/category");
 const serviceRoutes = require("./routes/service/service");
 const beauticianRoutes= require("./routes/beautician/register");
 const userAuthRoutes= require('./routes/user/authRoutes');
+const bookingRoutes= require("./routes/booking/booking");
 
 connectDB();
 
@@ -15,9 +16,9 @@ app.use(express.json());
 // Routes
 app.use("/api/categories", categoryRoutes);
 app.use("/api/services", serviceRoutes);
-app.use("/api/beautician", beauticianRoutes)
-app.use("/api/user", userAuthRoutes)
-
+app.use("/api/beautician", beauticianRoutes);
+app.use("/api/user", userAuthRoutes);
+app.use('/api/user/booking', bookingRoutes);
 
 const PORT = process.env.PORT || 5000;
 

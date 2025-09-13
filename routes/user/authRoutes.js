@@ -1,15 +1,9 @@
-const express = require('express');
-const {
-  verifyOTP,
-  completeProfile,
-  getProfile
-} = require('../../controllers/userController/auth');
-// const { protect } = require('../../middleware/auth');
+const express = require("express");
+const { register, login } = require("../../controllers/userController/auth");
 
 const router = express.Router();
 
-router.post('/verify-otp', verifyOTP);
-// router.put('/complete-profile', protect, completeProfile);
-// router.get('/profile', protect, getProfile);
+router.post("/register", register);
+router.post("/login", login);
 
 module.exports = router;

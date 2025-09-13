@@ -15,15 +15,26 @@ exports.createService = async (req, res) => {
       imageUrl = uploadResponse.url;
     }
 
+    const { name, description, price, duration, category, isPopular, isActive, isIncluded } = req.body;
+
+    // Validate isIncluded (must be exactly 5 points)
+    if (!isIncluded || !Array.isArray(isIncluded) || isIncluded.length !== 5) {
+      return res.status(400).json({
+        success: false,
+        message: "isIncluded must be an array of exactly 5 points"
+      });
+    }
+
     const service = await Service.create({
-      name: req.body.name,
-      description: req.body.description,
-      price: req.body.price,
-      duration: req.body.duration,
-      category: req.body.category,
+      name,
+      description,
+      price,
+      duration,
+      category,
       imageUrl,
-      isPopular: req.body.isPopular || false,
-      isActive: req.body.isActive || true
+      isPopular: isPopular || false,
+      isActive: isActive !== undefined ? isActive : true,
+      isIncluded
     });
 
     res.status(201).json({ success: true, data: service });
