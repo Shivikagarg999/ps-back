@@ -8,6 +8,8 @@ const beauticianRoutes= require("./routes/beautician/register");
 const userAuthRoutes= require('./routes/user/authRoutes');
 const bookingRoutes= require("./routes/booking/booking");
 const cartRoutes= require('./routes/cart/cart');
+const favouriteRoutes=require('./routes/favourite/favouriteRoutes');
+const referralRoutes=require('./routes/user/referralRoutes');
 
 connectDB();
 
@@ -21,6 +23,8 @@ app.use("/api/beautician", beauticianRoutes);
 app.use("/api/user", userAuthRoutes);
 app.use('/api/user/booking', bookingRoutes);
 app.use('/api/user/cart', cartRoutes);
+app.use('/api/user/favourites', favouriteRoutes);
+app.use('/api/user/referral', referralRoutes);
 
 
 const PORT = process.env.PORT || 5000;

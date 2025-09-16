@@ -39,7 +39,21 @@ const userSchema = new mongoose.Schema({
   favorites: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Service'
-  }]
+  }],
+   referralCode: {
+    type: String,
+    unique: true,
+    sparse: true 
+  },
+  referredBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null
+  },
+  wallet: {
+    type: Number,
+    default: 0
+  }
 }, { timestamps: true });
 
 // Encrypt password using bcrypt
