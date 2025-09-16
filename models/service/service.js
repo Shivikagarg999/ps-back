@@ -19,7 +19,7 @@ const serviceSchema = new mongoose.Schema({
     type: Number,
     required: [true, 'Please add duration'],
     min: [15, 'Minimum duration is 15 minutes']
-  }, 
+  },
   category: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category',
@@ -40,13 +40,28 @@ const serviceSchema = new mongoose.Schema({
   isIncluded: {
     type: [String], 
     validate: {
-      validator: function(arr) {
+      validator: function (arr) {
         return arr.length <= 5;
       },
       message: "You can add maximum 5 points in isIncluded"
     },
     default: []
-  }
+  },
+
+  addons: [
+    {
+      name: {
+        type: String,
+        required: [true, 'Addon must have a name']
+      },
+      price: {
+        type: Number,
+        required: [true, 'Addon must have a price'],
+        min: [0, 'Addon price cannot be negative']
+      }
+    }
+  ]
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('Service', serviceSchema);

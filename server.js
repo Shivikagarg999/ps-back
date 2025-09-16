@@ -7,6 +7,7 @@ const serviceRoutes = require("./routes/service/service");
 const beauticianRoutes= require("./routes/beautician/register");
 const userAuthRoutes= require('./routes/user/authRoutes');
 const bookingRoutes= require("./routes/booking/booking");
+const cartRoutes= require('./routes/cart/cart');
 
 connectDB();
 
@@ -19,6 +20,8 @@ app.use("/api/services", serviceRoutes);
 app.use("/api/beautician", beauticianRoutes);
 app.use("/api/user", userAuthRoutes);
 app.use('/api/user/booking', bookingRoutes);
+app.use('/api/user/cart', cartRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 

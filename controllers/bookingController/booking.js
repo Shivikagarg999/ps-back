@@ -1,30 +1,47 @@
 const Service = require("../../models/service/service");
+const Cart = require("../../models/cart/cart");
 const Booking = require("../../models/booking/booking");
 
-// Create Booking
+// Create Booking from Cart
 exports.createBooking = async (req, res) => {
   try {
-    const { serviceId, address, paymentMethod, bookingDate } = req.body;
+    const { address, paymentMethod } = req.body;
 
-    if (!bookingDate) {
-      return res.status(400).json({ success: false, message: "Booking date is required" });
+    // Get user's cart
+    const cart = await Cart.findOne({ user: req.user._id }).populate("items.service");
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({ success: false, message: "Cart is empty" });
     }
 
-    const service = await Service.findById(serviceId);
-    if (!service) {
-      return res.status(404).json({ success: false, message: "Service not found" });
-    }
+    // Prepare services array for booking
+    const services = cart.items.map((item) => ({
+      service: item.service._id,
+      quantity: item.quantity,
+      price: item.service.price,
+      addons: item.addons || [],
+    }));
 
+    // Calculate total amount
+    let totalAmount = 0;
+    services.forEach((s) => {
+      let addonsTotal = s.addons.reduce((sum, addon) => sum + addon.price, 0);
+      totalAmount += s.price * s.quantity + addonsTotal;
+    });
+
+    // Create booking
     const booking = await Booking.create({
       user: req.user._id,
-      service: service._id,
+      services,
       address,
-      amount: service.price,
+      amount: totalAmount,
       paymentMethod,
       paymentStatus: paymentMethod === "COD" ? "pending" : "paid",
+      bookingDate: new Date(),
       status: "confirmed",
-      bookingDate,
     });
+
+    // Clear cart after booking
+    await Cart.findOneAndUpdate({ user: req.user._id }, { items: [] });
 
     res.status(201).json({ success: true, data: booking });
   } catch (err) {
