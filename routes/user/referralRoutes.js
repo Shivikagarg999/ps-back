@@ -7,7 +7,7 @@ const router = express.Router();
 // Generate a referral code (one-time)
 router.post("/generate", protect, generateReferralCode);
 
-// Get my referral code + wallet balance
+// Get my referral code + wallet balance  
 router.get("/my-code", protect, getReferralCode);
 
 // Apply someone else’s referral code

@@ -5,47 +5,31 @@ const Booking = require("../../models/booking/booking");
 // Create Booking from Cart
 exports.createBooking = async (req, res) => {
   try {
-    const { address, paymentMethod } = req.body;
+    const { service, services, address, amount, paymentMethod, bookingDate } = req.body;
 
-    // Get user's cart
-    const cart = await Cart.findOne({ user: req.user._id }).populate("items.service");
-    if (!cart || cart.items.length === 0) {
-      return res.status(400).json({ success: false, message: "Cart is empty" });
+    // Handle both single service or multiple services
+    let serviceField = service || services;
+
+    if (!serviceField || !amount || !paymentMethod || !address || !bookingDate) {
+      return res.status(400).json({ msg: "All fields are required" });
     }
 
-    // Prepare services array for booking
-    const services = cart.items.map((item) => ({
-      service: item.service._id,
-      quantity: item.quantity,
-      price: item.service.price,
-      addons: item.addons || [],
-    }));
-
-    // Calculate total amount
-    let totalAmount = 0;
-    services.forEach((s) => {
-      let addonsTotal = s.addons.reduce((sum, addon) => sum + addon.price, 0);
-      totalAmount += s.price * s.quantity + addonsTotal;
-    });
-
-    // Create booking
-    const booking = await Booking.create({
-      user: req.user._id,
-      services,
+    const booking = new Booking({
+      user: req.user._id, // from auth middleware
+      service: serviceField, // ensure consistent field
       address,
-      amount: totalAmount,
+      amount,
       paymentMethod,
-      paymentStatus: paymentMethod === "COD" ? "pending" : "paid",
-      bookingDate: new Date(),
-      status: "confirmed",
+      bookingDate,
+      status: "pending", // Default status should be pending, not confirmed
+      paymentStatus: "pending",
     });
 
-    // Clear cart after booking
-    await Cart.findOneAndUpdate({ user: req.user._id }, { items: [] });
-
-    res.status(201).json({ success: true, data: booking });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    await booking.save();
+    res.status(201).json(booking);
+  } catch (error) {
+    console.error("Error creating booking:", error);
+    res.status(500).json({ msg: "Server error" });
   }
 };
 
@@ -93,6 +77,45 @@ exports.updateBookingStatus = async (req, res) => {
     await booking.save();
 
     res.json({ success: true, message: "Booking updated", data: booking });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Pending Bookings
+exports.getMyPendingBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find({ user: req.user._id, status: "pending" })
+      .populate("services.service", "name price duration")
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, data: bookings });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Completed Bookings
+exports.getMyCompletedBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find({ user: req.user._id, status: "completed" })
+      .populate("services.service", "name price duration")
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, data: bookings });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Cancelled Bookings
+exports.getMyCancelledBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find({ user: req.user._id, status: "cancelled" })
+      .populate("services.service", "name price duration")
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, data: bookings });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
