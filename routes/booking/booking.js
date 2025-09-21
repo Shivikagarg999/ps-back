@@ -8,13 +8,20 @@ const {
   getMyPendingBookings,
   getMyCompletedBookings,
   getMyCancelledBookings,
+  cancelBooking
 } = require("../../controllers/bookingController/booking");
 
 const protect = require("../../middlewares/auth");
 
 // ------------------- User Routes -------------------
 router.post("/", protect, createBooking);
-router.get("/my", protect, getMyBookings);
+
+// Get all bookings for logged-in user
+router.get("/my-bookings", protect, getMyBookings);
+
+// Cancel booking by user
+router.put("/cancel/:bookingId", protect, cancelBooking);
+
 
 // New user-specific booking status routes
 router.get("/pending", protect, getMyPendingBookings);

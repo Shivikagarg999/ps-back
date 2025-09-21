@@ -32,14 +32,38 @@ exports.createBooking = async (req, res) => {
   }
 };
 
-// Get My Bookings (User)
+// User: Get all bookings
 exports.getMyBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user._id })
-      .populate("service", "name price duration")
+      .populate("services.service", "name price duration")
       .sort({ createdAt: -1 });
 
     res.json({ success: true, data: bookings });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// User: Cancel a booking
+exports.cancelBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    const booking = await Booking.findOne({ _id: bookingId, user: req.user._id });
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+
+    // Only allow cancel if booking is pending
+    if (booking.status !== "pending") {
+      return res.status(400).json({ success: false, message: "Only pending bookings can be cancelled" });
+    }
+
+    booking.status = "cancelled";
+    await booking.save();
+
+    res.json({ success: true, message: "Booking cancelled", data: booking });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
