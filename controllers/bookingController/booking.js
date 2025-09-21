@@ -5,23 +5,22 @@ const Booking = require("../../models/booking/booking");
 // Create Booking from Cart
 exports.createBooking = async (req, res) => {
   try {
-    const { service, services, address, amount, paymentMethod, bookingDate } = req.body;
+    const { services, address, amount, paymentMethod, bookingDate, scheduledAt } = req.body;
 
-    // Handle both single service or multiple services
-    let serviceField = service || services;
-
-    if (!serviceField || !amount || !paymentMethod || !address || !bookingDate) {
+    // Check required fields
+    if (!services || !amount || !paymentMethod || !address || !scheduledAt) {
       return res.status(400).json({ msg: "All fields are required" });
     }
 
     const booking = new Booking({
-      user: req.user._id, // from auth middleware
-      service: serviceField, // ensure consistent field
+      user: req.user._id, 
+      services,  
       address,
       amount,
       paymentMethod,
-      bookingDate,
-      status: "pending", // Default status should be pending, not confirmed
+      bookingDate: bookingDate || Date.now(), 
+      scheduledAt,    
+      status: "pending",
       paymentStatus: "pending",
     });
 
