@@ -98,13 +98,23 @@ exports.updateQuantity = async (req, res) => {
 // 📦 Get User Cart
 exports.getCart = async (req, res) => {
   try {
-    const userId = req.user._id;
-    const cart = await Cart.findOne({ user: userId }).populate("items.service");
+    const userId = req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized: No user ID" });
+    }
 
-    if (!cart) return res.status(200).json({ success: true, cart: { items: [], grandTotal: 0 } });
+    const cart = await Cart.findOne({ user: userId }).populate({
+      path: "items.service",
+      model: "Service"
+    });
+
+    if (!cart) {
+      return res.status(200).json({ success: true, cart: { items: [], grandTotal: 0 } });
+    }
 
     res.status(200).json({ success: true, cart });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error("❌ Error in getCart:", err); // 👈 log full error
+    res.status(500).json({ success: false, message: err.message || "Server error" });
   }
 };
