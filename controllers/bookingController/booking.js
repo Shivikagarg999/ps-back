@@ -32,19 +32,6 @@ exports.createBooking = async (req, res) => {
   }
 };
 
-// User: Get all bookings
-exports.getMyBookings = async (req, res) => {
-  try {
-    const bookings = await Booking.find({ user: req.user._id })
-      .populate("services.service", "name price duration")
-      .sort({ createdAt: -1 });
-
-    res.json({ success: true, data: bookings });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-};
-
 // User: Cancel a booking
 exports.cancelBooking = async (req, res) => {
   try {
@@ -69,19 +56,21 @@ exports.cancelBooking = async (req, res) => {
   }
 };
 
-// Admin: Get All Bookings
+//GET ALL
 exports.getAllBookings = async (req, res) => {
   try {
     const bookings = await Booking.find()
-      .populate("user", "name phone email")
-      .populate("service", "name price")
+      .populate("services.service", "name price duration")
+      .populate("user", "name email phone")
       .sort({ createdAt: -1 });
 
     res.json({ success: true, data: bookings });
   } catch (err) {
+    console.error("🔥 Error in getAllBookings:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
 
 // Admin: Update Booking Status
 exports.updateBookingStatus = async (req, res) => {
@@ -102,6 +91,26 @@ exports.updateBookingStatus = async (req, res) => {
     res.json({ success: true, message: "Booking updated", data: booking });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Delete Service
+exports.deleteBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    // Check if service exists
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "booking not found" });
+    }
+
+    await Booking.findByIdAndDelete(bookingId);
+
+    res.status(200).json({ success: true, message: "booking deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting booking:", err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -135,6 +144,19 @@ exports.getMyCompletedBookings = async (req, res) => {
 exports.getMyCancelledBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user._id, status: "cancelled" })
+      .populate("services.service", "name price duration")
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, data: bookings });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// User: Get all bookings
+exports.getMyBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find({ user: req.user._id })
       .populate("services.service", "name price duration")
       .sort({ createdAt: -1 });
 

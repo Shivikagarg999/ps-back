@@ -8,7 +8,8 @@ const {
   getMyPendingBookings,
   getMyCompletedBookings,
   getMyCancelledBookings,
-  cancelBooking
+  cancelBooking,
+  deleteBooking
 } = require("../../controllers/bookingController/booking");
 
 const protect = require("../../middlewares/auth");
@@ -29,7 +30,8 @@ router.get("/completed", protect, getMyCompletedBookings);
 router.get("/cancelled", protect, getMyCancelledBookings);
 
 // ------------------- Admin Routes -------------------
-router.get("/", protect, getAllBookings);
-router.put("/:bookingId", protect, updateBookingStatus);
+router.get("/getbookings",  getAllBookings);
+router.put("/:bookingId",  updateBookingStatus);
+router.delete("/:bookingId",  deleteBooking);
 
 module.exports = router;
