@@ -7,8 +7,8 @@ const {
   getFavourites,
 } = require("../../controllers/favouriteController/favouriteController");
 
+router.get("/get", protect, getFavourites);
 router.post("/add", protect, addToFavourites);
 router.delete("/remove/:serviceId", protect, removeFromFavourites);
-router.get("/get", protect, getFavourites);
 
 module.exports = router;
