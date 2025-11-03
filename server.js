@@ -41,6 +41,9 @@ app.use((err, req, res, next) => {
   console.error("🔥 Backend Error:", err.stack);
   res.status(500).json({ success: false, message: err.message });
 });
+app.get('/', (req, res) => {
+  res.send('✨Backend is running successfully!✨');
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
