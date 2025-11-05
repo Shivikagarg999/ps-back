@@ -116,6 +116,29 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
+
+exports.deleteMyAccount = async (req, res) => {
+  try {
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const userId = req.user._id;
+
+    const user = await User.findByIdAndDelete(userId);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.status(200).json({ success: true, message: "Account deleted successfully" });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
 exports.createUser = async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
@@ -137,6 +160,7 @@ exports.createUser = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 // ✅ READ all users
 exports.getAllUsers = async (req, res) => {

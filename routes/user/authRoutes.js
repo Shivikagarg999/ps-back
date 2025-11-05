@@ -1,5 +1,5 @@
 const express = require("express");
-const { register, login, getProfile, updateProfile, getAllUsers, createUser, getUserById, updateUser, deleteUser } = require("../../controllers/userController/auth");
+const { register, login, getProfile, updateProfile, getAllUsers, createUser, getUserById, updateUser, deleteUser, deleteMyAccount } = require("../../controllers/userController/auth");
 const router = express.Router();
 const auth = require('../../middlewares/auth');
 
@@ -11,6 +11,8 @@ router.get("/profile", auth, getProfile);
 
 // Update logged-in user profile
 router.put("/profile", auth, updateProfile);
+
+router.delete("/delete", auth, deleteMyAccount);
 
 // CRUD routes
 router.post("/", createUser);
