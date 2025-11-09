@@ -12,6 +12,7 @@ const bookingRoutes = require("./routes/booking/booking");
 const cartRoutes = require("./routes/cart/cart");
 const favouriteRoutes = require("./routes/favourite/favouriteRoutes");
 const referralRoutes = require("./routes/user/referralRoutes");
+const otpRoutes= require("./routes/otp/otpRoutes");
 
 connectDB();
 
@@ -31,12 +32,12 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/beautician", beauticianRoutes);
 app.use("/api/user", userAuthRoutes);
+app.use("/api/otp", otpRoutes);
 app.use("/api/user/booking", bookingRoutes);
 app.use("/api/user/cart", cartRoutes);
 app.use("/api/user/favourites", favouriteRoutes);
 app.use("/api/user/referral", referralRoutes);
 
-// Global error handler
 app.use((err, req, res, next) => {
   console.error("🔥 Backend Error:", err.stack);
   res.status(500).json({ success: false, message: err.message });

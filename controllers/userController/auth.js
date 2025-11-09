@@ -2,7 +2,6 @@ const User = require("../../models/user/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// Register
 exports.register = async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
@@ -24,7 +23,7 @@ exports.register = async (req, res) => {
     res.status(500).json({ msg: err.message });
   }
 };
-// LOGIN
+
 exports.login = async (req, res) => {
   try {
     const { phone, password } = req.body;
@@ -116,7 +115,6 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-
 exports.deleteMyAccount = async (req, res) => {
   try {
     if (!req.user || !req.user._id) {
@@ -137,7 +135,6 @@ exports.deleteMyAccount = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
 
 exports.createUser = async (req, res) => {
   try {
@@ -161,8 +158,6 @@ exports.createUser = async (req, res) => {
   }
 };
 
-
-// ✅ READ all users
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select("-password");
@@ -172,7 +167,6 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-// ✅ READ single user
 exports.getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select("-password");
@@ -183,7 +177,6 @@ exports.getUserById = async (req, res) => {
   }
 };
 
-// ✅ UPDATE user
 exports.updateUser = async (req, res) => {
   try {
     const { name, email, phone, password, addresses } = req.body;
@@ -211,7 +204,6 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// ✅ DELETE user
 exports.deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
