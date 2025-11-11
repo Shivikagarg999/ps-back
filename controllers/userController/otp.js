@@ -1,6 +1,5 @@
 const admin = require('../../config/firebase');
 const User = require('../../models/user/user');
-const bcrypt = require('bcryptjs');
 
 exports.checkPhone = async (req, res) => {
   try {
@@ -85,10 +84,7 @@ exports.verifyAndResetPassword = async (req, res) => {
       });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
-    
-    user.password = hashedPassword;
+    user.password = newPassword;
     await user.save();
 
     res.status(200).json({ 
