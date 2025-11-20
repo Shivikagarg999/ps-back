@@ -1,24 +1,55 @@
-const User = require("../../models/user/user");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+require('dotenv').config();
+
+const User = require('../../models/user/user');
+const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 exports.register = async (req, res) => {
   try {
-    const { name, email, phone, password } = req.body;
+    const { name, email, phone, password, referralCode } = req.body;
 
-    if (!name || !phone || !password) {
-      return res.status(400).json({ msg: "Name, phone, and password are required" });
+    if (!name || !email || !phone || !password) {
+      return res.status(400).json({ msg: "All fields are required" });
     }
 
-    const existingUser = await User.findOne({ phone });
-    if (existingUser) {
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(400).json({ msg: "Email already registered" });
+    }
+
+    const existingPhone = await User.findOne({ phone });
+    if (existingPhone) {
       return res.status(400).json({ msg: "Phone already registered" });
     }
 
-    const user = new User({ name, email, phone, password });
+    let referredBy = null;
+    if (referralCode) {
+      const referringUser = await User.findOne({ referralCode });
+      if (referringUser) {
+        referredBy = referringUser._id;
+      }
+    }
+
+    const user = new User({ 
+      name, 
+      email, 
+      phone, 
+      password, 
+      referredBy 
+    });
+
     await user.save();
 
-    res.status(201).json({ msg: "User registered successfully" });
+    res.status(201).json({ 
+      msg: "User registered successfully",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone
+      }
+    });
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }
@@ -26,13 +57,19 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { phone, password } = req.body;
+    const { email, phone, password } = req.body;
 
-    if (!phone || !password) {
-      return res.status(400).json({ msg: "Phone and password are required" });
+    if (!password || (!email && !phone)) {
+      return res.status(400).json({ msg: "Email or phone and password are required" });
     }
 
-    const user = await User.findOne({ phone });
+    let user;
+    if (email) {
+      user = await User.findOne({ email });
+    } else {
+      user = await User.findOne({ phone });
+    }
+
     if (!user) {
       return res.status(400).json({ msg: "User not found" });
     }
@@ -44,7 +81,7 @@ exports.login = async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
-      process.env.JWT_SECRET || "secretkey",
+      process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
@@ -56,6 +93,7 @@ exports.login = async (req, res) => {
         name: user.name,
         phone: user.phone,
         email: user.email,
+        role: user.role
       },
     });
   } catch (err) {
@@ -63,11 +101,104 @@ exports.login = async (req, res) => {
   }
 };
 
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ msg: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ msg: "User with this email not found" });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = Date.now() + 3600000;
+
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = resetTokenExpiry;
+    await user.save();
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    const resetUrl = `https://api.prettysaheli.com/api/user/reset-password/${resetToken}`;
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: user.email,
+      subject: 'Password Reset Request',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Password Reset Request</h2>
+          <p>You requested a password reset for your account.</p>
+          <p>Click the link below to reset your password:</p>
+          <a href="${resetUrl}" 
+             style="display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0;">
+            Reset Password
+          </a>
+          <p>This link will expire in 1 hour.</p>
+          <p>If you didn't request this, please ignore this email.</p>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.json({ msg: "Password reset email sent successfully" });
+
+  } catch (err) {
+    console.error('Email error:', err);
+    res.status(500).json({ msg: "Failed to send reset email" });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ msg: "Password is required" });
+    }
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ msg: "Invalid or expired reset token" });
+    }
+
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.json({ msg: "Password reset successfully" });
+
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};
+
 exports.getProfile = async (req, res) => {
   try {
+    const user = await User.findById(req.user.id)
+      .select('-password')
+      .populate('favorites');
+
     res.status(200).json({
       success: true,
-      user: req.user
+      user
     });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error" });
@@ -76,7 +207,7 @@ exports.getProfile = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user.id);
 
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
@@ -87,11 +218,9 @@ exports.updateProfile = async (req, res) => {
     user.phone = req.body.phone || user.phone;
 
     if (req.body.password) {
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(req.body.password, salt);
+      user.password = req.body.password;
     }
 
-    // Update addresses (replace array if provided)
     if (req.body.addresses) {
       user.addresses = req.body.addresses;
     }
@@ -117,11 +246,7 @@ exports.updateProfile = async (req, res) => {
 
 exports.deleteMyAccount = async (req, res) => {
   try {
-    if (!req.user || !req.user._id) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
-    }
-
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     const user = await User.findByIdAndDelete(userId);
 
@@ -131,85 +256,6 @@ exports.deleteMyAccount = async (req, res) => {
 
     res.status(200).json({ success: true, message: "Account deleted successfully" });
 
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-};
-
-exports.createUser = async (req, res) => {
-  try {
-    const { name, email, phone, password } = req.body;
-
-    if (!name || !phone || !password) {
-      return res.status(400).json({ success: false, message: "Name, phone, and password are required" });
-    }
-
-    const existingUser = await User.findOne({ phone });
-    if (existingUser) {
-      return res.status(400).json({ success: false, message: "Phone already registered" });
-    }
-
-    const user = new User({ name, email, phone, password });
-    await user.save();
-
-    res.status(201).json({ success: true, message: "User created successfully", user });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-exports.getAllUsers = async (req, res) => {
-  try {
-    const users = await User.find().select("-password");
-    res.status(200).json({ success: true, count: users.length, users });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-};
-
-exports.getUserById = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id).select("-password");
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
-    res.status(200).json({ success: true, user });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-};
-
-exports.updateUser = async (req, res) => {
-  try {
-    const { name, email, phone, password, addresses } = req.body;
-    const user = await User.findById(req.params.id);
-
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
-
-    user.name = name || user.name;
-    user.email = email || user.email;
-    user.phone = phone || user.phone;
-
-    if (password) {
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password, salt);
-    }
-
-    if (addresses) {
-      user.addresses = addresses;
-    }
-
-    const updatedUser = await user.save();
-    res.status(200).json({ success: true, message: "User updated successfully", user: updatedUser });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-};
-
-exports.deleteUser = async (req, res) => {
-  try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
-
-    res.status(200).json({ success: true, message: "User deleted successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error" });
   }

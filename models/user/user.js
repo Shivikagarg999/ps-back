@@ -39,7 +39,7 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Service'
   }],
-   referralCode: {
+  referralCode: {
     type: String,
     unique: true,
     sparse: true 
@@ -52,10 +52,11 @@ const userSchema = new mongoose.Schema({
   wallet: {
     type: Number,
     default: 0
-  }
+  },
+  resetPasswordToken: String,
+  resetPasswordExpires: Date
 }, { timestamps: true });
 
-// Encrypt password using bcrypt
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) {
     next();
@@ -64,7 +65,6 @@ userSchema.pre('save', async function(next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Match password
 userSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
