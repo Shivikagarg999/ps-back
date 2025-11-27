@@ -5,12 +5,11 @@ exports.createCategory = async (req, res) => {
   try {
     let imageUrl = null;
 
-    // If image uploaded, send to ImageKit
     if (req.file) {
       const uploadResponse = await imagekit.upload({
-        file: req.file.buffer, // file in buffer
-        fileName: `category_${Date.now()}`, // unique filename
-        folder: "/categories" // optional folder in ImageKit
+        file: req.file.buffer,
+        fileName: `category_${Date.now()}`,
+        folder: "/categories" 
       });
 
       imageUrl = uploadResponse.url;
@@ -54,7 +53,6 @@ exports.updateCategory = async (req, res) => {
   try {
     let updateData = { ...req.body };
 
-    // If new image uploaded, update ImageKit
     if (req.file) {
       const uploadResponse = await imagekit.upload({
         file: req.file.buffer,

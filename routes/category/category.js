@@ -9,11 +9,9 @@ const {
   deleteCategory
 } = require("../../controllers/categoriesController/categoryController");
 
-// Multer setup for handling image upload in memory
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// Routes
 router.post("/", upload.single("image"), createCategory);
 router.get("/", getCategories);
 router.get("/:id", getCategory); 

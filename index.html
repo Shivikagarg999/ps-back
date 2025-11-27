@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Invoice — Pretty Saheli</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    :root {
+      --accent: #FD6C7B;
+      --accent-light: rgba(253, 108, 123, 0.1);
+      --accent-dark: #e55a68;
+      --muted: #6b6b6b;
+      --muted-light: #9a9a9a;
+      --bg: #ffffff;
+      --border: #e8e8e8;
+      --text: #333333;
+      --cod-color: #ff6b35;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.4;
+    }
+    
+    .controls {
+      max-width: 900px;
+      margin: 20px auto 10px;
+      text-align: center;
+    }
+    
+    .btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+      margin: 0 5px;
+    }
+    
+    .btn:hover {
+      background: var(--accent-dark);
+    }
+    
+    .btn-secondary {
+      background: #6c757d;
+    }
+    
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+    
+    .invoice-wrap {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 32px;
+      border-radius: 8px;
+      background: var(--bg);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border);
+    }
+    
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .brand {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    
+    .logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent-light);
+      border: 1px solid rgba(253, 108, 123, 0.15);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    
+    .logo img {
+      max-width: 70px;
+      max-height: 70px;
+      object-fit: contain;
+    }
+    
+    .company {
+      line-height: 1.4;
+    }
+    
+    .company .name {
+      font-weight: 700;
+      font-size: 22px;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    
+    .company .legal {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    
+    .company-details {
+      text-align: right;
+      font-size: 13px;
+      color: var(--text);
+    }
+    
+    .company-details .gst {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    
+    .invoice-title {
+      background: var(--accent);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 6px;
+      display: inline-block;
+      font-weight: 600;
+      font-size: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .payment-badge {
+      background: var(--cod-color);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 12px;
+    }
+    
+    .payment-badge::before {
+      content: "💰";
+      font-size: 16px;
+    }
+    
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 22px 0;
+    }
+    
+    .meta .box {
+      background: #f9f9f9;
+      padding: 14px;
+      border-radius: 6px;
+      border-left: 3px solid var(--accent);
+    }
+    
+    .meta .box h4 {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .meta .box p {
+      margin: 6px 0 0;
+      font-weight: 700;
+      font-size: 15px;
+    }
+    
+    .client-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      margin: 24px 0;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 6px;
+    }
+    
+    .client-info h4 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    
+    .client-info .name {
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .client-info .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    
+    table.items {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    
+    table.items thead th {
+      background: var(--accent);
+      color: white;
+      padding: 14px 12px;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    
+    table.items tbody td {
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    
+    table.items tbody tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    
+    table.items tbody tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .right {
+      text-align: right;
+    }
+    
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    
+    .totals {
+      margin-top: 24px;
+      display: flex;
+      justify-content: flex-end;
+    }
+    
+    .totals .table {
+      width: 320px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    
+    .totals .table .row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .totals .table .row:last-child {
+      border-bottom: none;
+    }
+    
+    .totals .table .row.total {
+      font-weight: 800;
+      font-size: 16px;
+      background: var(--accent-light);
+    }
+    
+    .cod-instructions {
+      background: rgba(255, 107, 53, 0.1);
+      border: 1px solid rgba(255, 107, 53, 0.2);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 20px 0;
+    }
+    
+    .cod-instructions h4 {
+      color: var(--cod-color);
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .cod-instructions h4::before {
+      content: "ℹ️";
+    }
+    
+    .cod-instructions ul {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+    
+    .cod-instructions li {
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+    
+    .notes {
+      margin-top: 24px;
+      padding: 16px;
+      background: #f9f9f9;
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--text);
+      border-left: 3px solid var(--accent);
+    }
+    
+    footer {
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    
+    .pay-btn {
+      background: var(--cod-color);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      transition: background 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .pay-btn:hover {
+      background: #e55a2b;
+    }
+    
+    .bank-info {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    
+    .footer-note {
+      font-size: 12px;
+      color: var(--muted-light);
+      text-align: right;
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      color: var(--muted);
+    }
+    
+    @media (max-width: 768px) {
+      .invoice-wrap {
+        padding: 20px;
+        margin: 16px;
+      }
+      
+      header {
+        flex-direction: column;
+        gap: 16px;
+      }
+      
+      .company-details {
+        text-align: left;
+      }
+      
+      .meta {
+        grid-template-columns: 1fr;
+      }
+      
+      footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .footer-note {
+        text-align: left;
+      }
+      
+      .controls {
+        margin: 10px;
+      }
+      
+      .btn {
+        display: block;
+        width: 100%;
+        margin: 5px 0;
+      }
+      
+      .payment-badge {
+        margin-left: 0;
+        margin-top: 10px;
+        display: inline-block;
+      }
+    }
+    
+    @media print {
+      .controls {
+        display: none;
+      }
+      
+      body {
+        background: #fff;
+      }
+      
+      .invoice-wrap {
+        box-shadow: none;
+        border: 0;
+        margin: 0;
+        padding: 0;
+      }
+      
+      .logo {
+        border: none;
+      }
+      
+      .pay-btn {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <button class="btn" onclick="generatePDF()">Download PDF</button>
+    <button class="btn btn-secondary" onclick="printInvoice()">Print Invoice</button>
+    <div class="loading" id="loading">Generating PDF, please wait...</div>
+  </div>
+
+  <div class="invoice-wrap" id="invoice">
+    <header>
+      <div class="brand">
+        <div class="logo">
+          <img src="./logo.jpeg" alt="Pretty Saheli Logo">
+        </div>
+        <div class="company">
+          <div class="name">Pretty Saheli</div>
+          <div class="legal">(App) — Himaara Wellness Private Limited</div>
+          <div class="legal">GSTIN: <strong>09AAICH2738K1Z7</strong></div>
+        </div>
+      </div>
+
+      <div class="company-details">
+        <div style="font-weight:700; font-size: 18px;">Invoice</div>
+        <div class="muted" style="margin-top:8px">
+          417/1072, Shiv Sadan,<br>
+          Near Hanumat Sai Mandir,<br>
+          Niwazganj, Thakurganj,<br>
+          Lucknow - 226003
+        </div>
+      </div>
+    </header>
+
+    <div style="display:flex;justify-content:space-between;align-items:center; flex-wrap: wrap; gap: 16px;">
+      <div style="display: flex; align-items: center; flex-wrap: wrap;">
+        <div class="invoice-title">TAX INVOICE</div>
+        <div class="payment-badge">Cash on Delivery</div>
+      </div>
+      <div class="muted" style="font-size: 13px;">Home salon services • makeup • facial • mehendi • saree-draping • & more</div>
+    </div>
+
+    <div class="meta">
+      <div class="box">
+        <h4>Invoice No.</h4>
+        <p>#PS-2025-001</p>
+      </div>
+      <div class="box">
+        <h4>Invoice Date</h4>
+        <p>22 Nov 2025</p>
+      </div>
+      <div class="box">
+        <h4>Due Date</h4>
+        <p>On Delivery</p>
+      </div>
+    </div>
+
+    <div class="client-info">
+      <div>
+        <h4>Bill To</h4>
+        <div class="name">Client Name</div>
+        <div class="muted">Client Address line 1<br>City, State - PIN</div>
+      </div>
+      <div>
+        <h4>Service Address</h4>
+        <div class="name">Service Location</div>
+        <div class="muted">Address/landmark where service was provided</div>
+      </div>
+    </div>
+
+    <div class="cod-instructions">
+      <h4>Cash on Delivery Instructions</h4>
+      <ul>
+        <li>Payment of <strong>₹18,290.00</strong> to be collected at the time of service delivery</li>
+        <li>Please keep exact change ready for the service professional</li>
+        <li>Payment receipt will be provided upon cash collection</li>
+        <li>For any payment-related queries, contact: +91-XXXXXXXXXX</li>
+      </ul>
+    </div>
+
+    <table class="items" aria-labelledby="invoice-items">
+      <thead>
+        <tr>
+          <th style="width:56%">Description</th>
+          <th style="width:12%" class="right">Qty</th>
+          <th style="width:16%" class="right">Rate (₹)</th>
+          <th style="width:16%" class="right">Amount (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div style="font-weight: 600;">Bridal Makeup — at-home (includes trial & travel)</div>
+            <div class="muted" style="margin-top:6px">Artist: Priya • Duration: 3 hrs</div>
+          </td>
+          <td class="right">1</td>
+          <td class="right">12,500.00</td>
+          <td class="right">12,500.00</td>
+        </tr>
+        <tr>
+          <td>
+            <div style="font-weight: 600;">Facial treatment — Gold Radiance</div>
+            <div class="muted" style="margin-top:6px">Includes cleansing, steam & mask</div>
+          </td>
+          <td class="right">1</td>
+          <td class="right">2,200.00</td>
+          <td class="right">2,200.00</td>
+        </tr>
+        <tr>
+          <td>
+            <div style="font-weight: 600;">Mehendi (full hands)</div>
+            <div class="muted" style="margin-top:6px">Natural henna, 90 mins</div>
+          </td>
+          <td class="right">1</td>
+          <td class="right">800.00</td>
+          <td class="right">800.00</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="totals">
+      <div class="table">
+        <div class="row"><div class="muted">Subtotal</div><div class="right">₹15,500.00</div></div>
+        <div class="row"><div class="muted">Discount</div><div class="right">- ₹0.00</div></div>
+        <div class="row"><div class="muted">CGST (9%)</div><div class="right">₹1,395.00</div></div>
+        <div class="row"><div class="muted">SGST (9%)</div><div class="right">₹1,395.00</div></div>
+        <div class="row total"><div>Amount Payable</div><div class="right">₹18,290.00</div></div>
+      </div>
+    </div>
+
+    <div class="notes">
+      <strong>Notes:</strong> We provide home salon services with professional products. Travel charges included. This invoice is generated by Pretty Saheli (Himaara Wellness Private Limited). <strong>Payment will be collected in cash at the time of service delivery.</strong>
+    </div>
+
+    <footer>
+      <div class="bank-info">
+        <strong>For Online Payments:</strong> Himaara Wellness Pvt Ltd • A/c: 1234567890 • IFSC: ABCD0123456
+      </div>
+      <div style="display:flex;gap:16px;align-items:center; flex-wrap: wrap;">
+        <button class="pay-btn" onclick="markAsPaid()">Mark as Collected</button>
+        <div class="footer-note">This is a computer-generated invoice and does not require a signature.</div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    function generatePDF() {
+      const loading = document.getElementById('loading');
+      loading.style.display = 'block';
+      
+      const element = document.getElementById('invoice');
+      
+      const options = {
+        margin: [10, 10, 10, 10],
+        filename: 'Pretty-Saheli-Invoice-COD.pdf',
+        image: { 
+          type: 'jpeg', 
+          quality: 0.98 
+        },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          scrollX: 0,
+          scrollY: 0
+        },
+        jsPDF: { 
+          unit: 'mm', 
+          format: 'a4', 
+          orientation: 'portrait' 
+        },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      // Generate PDF
+      html2pdf().set(options).from(element).save().then(() => {
+        // Hide loading indicator when done
+        loading.style.display = 'none';
+      });
+    }
+
+    function printInvoice() {
+      window.print();
+    }
+
+    function markAsPaid() {
+      const btn = event.target;
+      const originalText = btn.textContent;
+      btn.textContent = 'Cash Collected ✓';
+      btn.style.background = '#28a745';
+      btn.disabled = true;
+      
+      // Update payment badge
+      const paymentBadge = document.querySelector('.payment-badge');
+      paymentBadge.textContent = 'Payment Collected';
+      paymentBadge.style.background = '#28a745';
+      
+      // Revert after 5 seconds (optional)
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.background = '';
+        btn.disabled = false;
+        paymentBadge.textContent = 'Cash on Delivery';
+        paymentBadge.style.background = '';
+      }, 5000);
+      
+      alert('Payment marked as collected!');
+    }
+
+    // Optional: Auto-generate PDF on page load (uncomment if needed)
+    // window.addEventListener('load', function() {
+    //   // Auto-generate PDF after 2 seconds
+    //   setTimeout(generatePDF, 2000);
+    // });
+  </script>
+</body>
+</html>
