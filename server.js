@@ -25,7 +25,6 @@ app.use(
   })
 );
 
-// Routes
 app.use("/api/categories", categoryRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/beautician", beauticianRoutes);
@@ -36,12 +35,21 @@ app.use("/api/user/cart", cartRoutes);
 app.use("/api/user/favourites", favouriteRoutes);
 app.use("/api/user/referral", referralRoutes);
 
+
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    uptime: process.uptime(),
+    timestamp: new Date()
+  });
+});
+
 app.use((err, req, res, next) => {
-  console.error("🔥 Backend Error:", err.stack);
+  console.error("🔥Backend Error:", err.stack);
   res.status(500).json({ success: false, message: err.message });
 });
 app.get('/', (req, res) => {
-  res.send('✨Backend is running successfully!✨');
+  res.send('✨Welcome to Pretty Saheli Backend. Server is running.✨');
 });
 
 const PORT = process.env.PORT || 5000;
