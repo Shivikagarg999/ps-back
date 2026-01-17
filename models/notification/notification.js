@@ -42,4 +42,26 @@ const notificationSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+notificationSchema.post("save", async function (doc) {
+    try {
+        const { sendPushNotification } = require("../../utils/notificationSender");
+
+        // Prepare data for push notification
+        const pushData = {
+            title: doc.title,
+            body: doc.message,
+            data: {
+                type: doc.type,
+                notificationId: doc._id.toString(),
+                ...(doc.metadata?.bookingId && { bookingId: doc.metadata.bookingId.toString() }),
+                ...(doc.metadata?.serviceId && { serviceId: doc.metadata.serviceId.toString() }),
+            },
+        };
+
+        await sendPushNotification(doc.user, pushData);
+    } catch (error) {
+        console.error("Error in notification post-save middleware:", error);
+    }
+});
+
 module.exports = mongoose.model("Notification", notificationSchema);
