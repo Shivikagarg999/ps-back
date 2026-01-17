@@ -1,4 +1,5 @@
 const User = require("../../models/user/user");
+const Notification = require("../../models/notification/notification");
 
 // Generate Referral Code (only once after login)
 exports.generateReferralCode = async (req, res) => {
@@ -61,6 +62,22 @@ exports.applyReferral = async (req, res) => {
 
     await user.save();
     await referrer.save();
+
+    // Trigger Notification for Referrer
+    await Notification.create({
+      user: referrer._id,
+      title: "Referral Bonus! 💸",
+      message: `${user.name} used your referral code. ₹20 credited to your wallet.`,
+      type: "offer"
+    });
+
+    // Trigger Notification for User
+    await Notification.create({
+      user: user._id,
+      title: "Welcome Bonus! 🎁",
+      message: "You received ₹25 bonus for using a referral code.",
+      type: "offer"
+    });
 
     res.json({
       success: true,

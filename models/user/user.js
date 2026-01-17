@@ -42,7 +42,7 @@ const userSchema = new mongoose.Schema({
   referralCode: {
     type: String,
     unique: true,
-    sparse: true 
+    sparse: true
   },
   referredBy: {
     type: mongoose.Schema.Types.ObjectId,
@@ -53,11 +53,20 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
+  },
+  fcmToken: {
+    type: String,
+    default: null
+  },
   resetPasswordToken: String,
   resetPasswordExpires: Date
 }, { timestamps: true });
 
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     next();
   }
@@ -65,7 +74,7 @@ userSchema.pre('save', async function(next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-userSchema.methods.matchPassword = async function(enteredPassword) {
+userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 

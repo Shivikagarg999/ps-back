@@ -270,3 +270,21 @@ exports.deleteMyAccount = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+// @desc    Update FCM Token
+// @route   PATCH /api/user/fcm-token
+// @access  Private
+exports.updateFcmToken = async (req, res) => {
+  try {
+    const { fcmToken } = req.body;
+
+    await User.findByIdAndUpdate(req.user.id, { fcmToken });
+
+    res.status(200).json({
+      success: true,
+      message: "FCM Token updated successfully",
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

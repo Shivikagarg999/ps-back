@@ -1,6 +1,7 @@
 const Service = require("../../models/service/service");
 const Cart = require("../../models/cart/cart");
 const Booking = require("../../models/booking/booking");
+const Notification = require("../../models/notification/notification");
 
 // Create Booking from Cart
 exports.createBooking = async (req, res) => {
@@ -13,18 +14,28 @@ exports.createBooking = async (req, res) => {
     }
 
     const booking = new Booking({
-      user: req.user._id, 
-      services,  
+      user: req.user._id,
+      services,
       address,
       amount,
       paymentMethod,
-      bookingDate: bookingDate || Date.now(), 
-      scheduledAt,    
+      bookingDate: bookingDate || Date.now(),
+      scheduledAt,
       status: "pending",
       paymentStatus: "pending",
     });
 
     await booking.save();
+
+    // Trigger Notification
+    await Notification.create({
+      user: req.user._id,
+      title: "Booking Confirmed! 🎉",
+      message: `Your booking for ${scheduledAt} has been placed successfully.`,
+      type: "booking",
+      metadata: { bookingId: booking._id }
+    });
+
     res.status(201).json(booking);
   } catch (error) {
     console.error("Error creating booking:", error);
@@ -49,6 +60,15 @@ exports.cancelBooking = async (req, res) => {
 
     booking.status = "cancelled";
     await booking.save();
+
+    // Trigger Notification
+    await Notification.create({
+      user: req.user._id,
+      title: "Booking Cancelled",
+      message: `You have successfully cancelled your booking.`,
+      type: "booking",
+      metadata: { bookingId: booking._id }
+    });
 
     res.json({ success: true, message: "Booking cancelled", data: booking });
   } catch (err) {
@@ -87,6 +107,15 @@ exports.updateBookingStatus = async (req, res) => {
     if (paymentStatus) booking.paymentStatus = paymentStatus;
 
     await booking.save();
+
+    // Trigger Notification for User
+    await Notification.create({
+      user: booking.user,
+      title: `Booking ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+      message: `Your booking status has been updated to: ${status}.`,
+      type: "booking",
+      metadata: { bookingId: booking._id }
+    });
 
     res.json({ success: true, message: "Booking updated", data: booking });
   } catch (err) {

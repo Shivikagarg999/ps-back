@@ -1,5 +1,6 @@
 const Beautician = require("../../models/beautician/beautician");
 const Booking = require("../../models/booking/booking");
+const Notification = require("../../models/notification/notification");
 const bcrypt = require("bcrypt");
 
 // 📌 Register new beautician
@@ -177,6 +178,18 @@ const assignBeauticianToBooking = async (req, res) => {
       beautician.bookings.push(bookingId);
       await beautician.save();
     }
+
+    // Trigger Notification for User
+    await Notification.create({
+      user: booking.user,
+      title: "Beautician Assigned! 💄",
+      message: `${beautician.name} has been assigned for your appointment.`,
+      type: "booking",
+      metadata: {
+        bookingId: booking._id,
+        serviceId: booking.services[0]?.service // Assuming first service relation
+      }
+    });
 
     res.status(200).json({
       message: "Beautician assigned successfully",

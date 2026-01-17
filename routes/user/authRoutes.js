@@ -2,21 +2,83 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../../controllers/userController/auth');
 const auth = require('../../middlewares/auth');
-const User= require('../../models/user/user');
+const User = require('../../models/user/user');
 
+/**
+ * @swagger
+ * tags:
+ *   name: User Auth
+ *   description: User registration and authentication
+ */
+
+/**
+ * @swagger
+ * /api/user/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [User Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, email, phone, password]
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               referralCode:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ */
 router.post('/register', authController.register);
+
+/**
+ * @swagger
+ * /api/user/login:
+ *   post:
+ *     summary: Login a user
+ *     tags: [User Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ */
 router.post('/login', authController.login);
+
+// Password Reset Link Display Route (renders HTML)
 router.get('/reset-password/:token', async (req, res) => {
-  try {
-    const { token } = req.params;
+    try {
+        const { token } = req.params;
 
-    const user = await User.findOne({
-      resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() }
-    });
+        const user = await User.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
 
-    if (!user) {
-      return res.send(`
+        if (!user) {
+            return res.send(`
         <!DOCTYPE html>
         <html>
         <head>
@@ -36,10 +98,10 @@ router.get('/reset-password/:token', async (req, res) => {
         </body>
         </html>
       `);
-    }
+        }
 
-    // Show reset password form
-    res.send(`
+        // Show reset password form
+        res.send(`
       <!DOCTYPE html>
       <html>
       <head>
@@ -115,14 +177,130 @@ router.get('/reset-password/:token', async (req, res) => {
       </body>
       </html>
     `);
-  } catch (error) {
-    res.status(500).send('Server error');
-  }
+    } catch (error) {
+        res.status(500).send('Server error');
+    }
 });
+
+/**
+ * @swagger
+ * /api/user/forgot-password:
+ *   post:
+ *     summary: Request password reset email
+ *     tags: [User Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Email sent
+ */
 router.post('/forgot-password', authController.forgotPassword);
+
+/**
+ * @swagger
+ * /api/user/reset-password/{token}:
+ *   post:
+ *     summary: Reset password with token
+ *     tags: [User Auth]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [password]
+ *             properties:
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ */
 router.post('/reset-password/:token', authController.resetPassword);
+
+/**
+ * @swagger
+ * /api/user/profile:
+ *   get:
+ *     summary: Get user profile
+ *     tags: [User Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Success
+ *   put:
+ *     summary: Update user profile
+ *     tags: [User Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Profile updated
+ */
 router.get('/profile', auth, authController.getProfile);
 router.put('/profile', auth, authController.updateProfile);
-router.delete('/delete-account', auth, authController.deleteMyAccount);
+
+/**
+ * @swagger
+ * /api/user/delete-account:
+ *   delete:
+ *     summary: Delete user account
+ *     tags: [User Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Deleted
+ */
+/**
+ * @swagger
+ * /api/user/fcm-token:
+ *   patch:
+ *     summary: Update FCM device token for push notifications
+ *     tags: [User Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [fcmToken]
+ *             properties:
+ *               fcmToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Token updated
+ */
+router.patch('/fcm-token', auth, authController.updateFcmToken);
 
 module.exports = router;

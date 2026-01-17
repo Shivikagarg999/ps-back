@@ -10,7 +10,11 @@ const bookingRoutes = require("./routes/booking/booking");
 const cartRoutes = require("./routes/cart/cart");
 const favouriteRoutes = require("./routes/favourite/favouriteRoutes");
 const referralRoutes = require("./routes/user/referralRoutes");
-const otpRoutes= require("./routes/otp/otpRoutes");
+const otpRoutes = require("./routes/otp/otpRoutes");
+const notificationRoutes = require("./routes/notification/notificationRoutes");
+
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 
 connectDB();
 
@@ -34,6 +38,10 @@ app.use("/api/user/booking", bookingRoutes);
 app.use("/api/user/cart", cartRoutes);
 app.use("/api/user/favourites", favouriteRoutes);
 app.use("/api/user/referral", referralRoutes);
+app.use("/api/user/notifications", notificationRoutes);
+
+// Swagger Documentation Route
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 
 app.get("/health", (req, res) => {
