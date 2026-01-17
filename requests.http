@@ -1,0 +1,7 @@
+### Forgot Password
+POST http://localhost:5000/api/user/forgot-password
+Content-Type: application/json
+
+{
+    "email": "shivikagarg91@gmail.com"
+}

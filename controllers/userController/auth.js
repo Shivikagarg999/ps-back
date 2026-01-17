@@ -31,17 +31,17 @@ exports.register = async (req, res) => {
       }
     }
 
-    const user = new User({ 
-      name, 
-      email, 
-      phone, 
-      password, 
-      referredBy 
+    const user = new User({
+      name,
+      email,
+      phone,
+      password,
+      referredBy
     });
 
     await user.save();
 
-    res.status(201).json({ 
+    res.status(201).json({
       msg: "User registered successfully",
       user: {
         id: user._id,
@@ -80,10 +80,10 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign(
-  { id: user._id, role: user.role },
-  process.env.JWT_SECRET,
-  { expiresIn: "365d" }
-);
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "365d" }
+    );
 
 
     res.json({
@@ -130,7 +130,8 @@ exports.forgotPassword = async (req, res) => {
       }
     });
 
-    const resetUrl = `https://api.prettysaheli.com/api/user/reset-password/${resetToken}`;
+    const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+    const resetUrl = `${baseUrl}/api/user/reset-password/${resetToken}`;
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -151,13 +152,15 @@ exports.forgotPassword = async (req, res) => {
       `
     };
 
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully:', info.messageId);
+    console.log('Server response:', info.response);
 
     res.json({ msg: "Password reset email sent successfully" });
 
   } catch (err) {
     console.error('Email error:', err);
-    res.status(500).json({ msg: "Failed to send reset email" });
+    res.status(500).json({ msg: "Failed to send reset email: " + err.message });
   }
 };
 
