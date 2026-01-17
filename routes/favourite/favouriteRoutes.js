@@ -9,6 +9,6 @@ const {
 
 router.get("/get", protect, getFavourites);
 router.post("/add", protect, addToFavourites);
-router.delete("/remove/:serviceId", protect, removeFromFavourites);
+router.post("/remove", protect, removeFromFavourites);
 
 module.exports = router;

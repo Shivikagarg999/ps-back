@@ -29,7 +29,7 @@ exports.addToFavourites = async (req, res) => {
 // Remove from Favourites
 exports.removeFromFavourites = async (req, res) => {
   try {
-    const { serviceId } = req.params;
+    const { serviceId } = req.body;
 
     const user = await User.findById(req.user._id);
 
@@ -38,7 +38,7 @@ exports.removeFromFavourites = async (req, res) => {
     );
     await user.save();
 
-    res.json({ success: true, message: "Removed from favourites", data: user.favorites });
+    res.json({ success: true, message: "Removed from favorites" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

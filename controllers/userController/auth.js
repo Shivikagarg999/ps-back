@@ -127,7 +127,13 @@ exports.forgotPassword = async (req, res) => {
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-      }
+      },
+      tls: {
+        rejectUnauthorized: false
+      },
+      connectionTimeout: 10000, // 10 seconds
+      greetingTimeout: 5000,
+      socketTimeout: 10000
     });
 
     const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
