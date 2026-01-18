@@ -34,10 +34,16 @@ exports.createBooking = async (req, res) => {
     );
 
     // Trigger Notification
+    const readableDate = new Intl.DateTimeFormat('en-IN', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+      timeZone: 'Asia/Kolkata'
+    }).format(new Date(scheduledAt));
+
     await Notification.create({
       user: req.user._id,
       title: "Booking Confirmed! 🎉",
-      message: `Your booking for ${scheduledAt} has been placed successfully.`,
+      message: `Your booking for ${readableDate} has been placed successfully.`,
       type: "booking",
       metadata: { bookingId: booking._id }
     });
