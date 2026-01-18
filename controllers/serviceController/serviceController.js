@@ -15,7 +15,7 @@ exports.createService = async (req, res) => {
       imageUrl = uploadResponse.url;
     }
 
-    const { name, description, price, duration, category, isPopular, isActive, isIncluded } = req.body;
+    const { name, description, price, gstAmount, duration, category, isPopular, isActive, isIncluded } = req.body;
 
     if (!isIncluded || !Array.isArray(isIncluded) || isIncluded.length !== 5) {
       return res.status(400).json({
@@ -28,6 +28,7 @@ exports.createService = async (req, res) => {
       name,
       description,
       price,
+      gstAmount: gstAmount || 0,
       duration,
       category,
       imageUrl,
@@ -78,9 +79,9 @@ exports.updateService = async (req, res) => {
       updateData.imageUrl = uploadResponse.url;
     }
 
-    const service = await Service.findByIdAndUpdate(req.params.id, updateData, { 
+    const service = await Service.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
-      runValidators: true 
+      runValidators: true
     }).populate('category', 'name');
 
     if (!service) {
@@ -108,14 +109,14 @@ exports.deleteService = async (req, res) => {
 
 exports.searchServices = async (req, res) => {
   try {
-    const { 
-      query, 
-      category, 
-      minPrice, 
-      maxPrice, 
-      isPopular, 
+    const {
+      query,
+      category,
+      minPrice,
+      maxPrice,
+      isPopular,
       isActive,
-      page = 1, 
+      page = 1,
       limit = 10,
       sortBy = 'name',
       sortOrder = 'asc'
@@ -181,8 +182,8 @@ exports.searchServices = async (req, res) => {
 exports.getServicesByCategory = async (req, res) => {
   try {
     const { categoryId } = req.params;
-    const { 
-      page = 1, 
+    const {
+      page = 1,
       limit = 10,
       sortBy = 'name',
       sortOrder = 'asc',

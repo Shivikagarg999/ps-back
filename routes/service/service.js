@@ -28,6 +28,8 @@ const serviceController = require('../../controllers/serviceController/serviceCo
  *                 type: string
  *               price:
  *                 type: number
+ *               gstAmount:
+ *                 type: number
  *               duration:
  *                 type: string
  *               category:
@@ -122,6 +124,16 @@ router.get('/category/:categoryId', serviceController.getServicesByCategory);
  *             type: object
  *             properties:
  *               name:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *               gstAmount:
+ *                 type: number
+ *               duration:
+ *                 type: number
+ *               category:
+ *                 type: string
+ *               description:
  *                 type: string
  *               image:
  *                 type: string

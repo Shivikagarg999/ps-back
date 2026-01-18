@@ -4,6 +4,8 @@ const User = require('../../models/user/user');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const admin = require('../../config/firebase');
+
 
 exports.register = async (req, res) => {
   try {
@@ -99,6 +101,63 @@ exports.login = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ msg: err.message });
+  }
+};
+
+exports.googleLogin = async (req, res) => {
+  try {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      return res.status(400).json({ success: false, message: "ID Token is required" });
+    }
+
+    // Verify the ID token using Firebase Admin
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { email, name, picture, uid } = decodedToken;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create a new user if not found
+      // We don't have a phone number yet, so it will be null
+      user = new User({
+        name,
+        email,
+        googleId: uid,
+        phone: null, // User might need to provide this later
+      });
+      await user.save();
+    } else {
+      // If user exists but doesn't have a googleId, update it
+      if (!user.googleId) {
+        user.googleId = uid;
+        await user.save();
+      }
+    }
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "365d" }
+    );
+
+    res.status(200).json({
+      success: true,
+      msg: "Google login successful",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        isNewUser: !user.phone // Suggests they might need to update their profile with a phone number
+      }
+    });
+  } catch (error) {
+    console.error("Google Login Error:", error);
+    res.status(401).json({ success: false, message: "Invalid Google token", error: error.message });
   }
 };
 

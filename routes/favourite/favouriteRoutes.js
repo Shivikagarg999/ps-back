@@ -36,16 +36,16 @@ router.get("/get", protect, getFavourites);
  *     tags: [Favourites]
  *     security:
  *       - bearerAuth: []
- *       requestBody:
- *         required: true
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               required: [serviceId]
- *               properties:
- *                 serviceId:
- *                   type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [serviceId]
+ *             properties:
+ *               serviceId:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Service added to favorites

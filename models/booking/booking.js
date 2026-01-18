@@ -24,6 +24,10 @@ const bookingSchema = new mongoose.Schema(
           type: Number,
           required: true,
         },
+        gstAmount: {
+          type: Number,
+          default: 0,
+        },
         addons: [
           {
             name: String,
@@ -32,6 +36,11 @@ const bookingSchema = new mongoose.Schema(
         ],
       },
     ],
+
+    totalGst: {
+      type: Number,
+      default: 0,
+    },
 
     address: {
       name: String,
@@ -42,6 +51,10 @@ const bookingSchema = new mongoose.Schema(
       state: String,
       pincode: String,
     },
+    phoneNumber: {
+      type: String,
+      required: true,
+    },
 
     amount: {
       type: Number,
@@ -50,7 +63,7 @@ const bookingSchema = new mongoose.Schema(
 
     paymentMethod: {
       type: String,
-      enum: ["COD", "UPI", "Card"],
+      enum: ["COD", "Online"],
       required: true,
     },
 
@@ -64,7 +77,7 @@ const bookingSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
-    scheduledAt: {   // user-selected date & time
+    scheduledAt: {
       type: Date,
       required: true,
     },

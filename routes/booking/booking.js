@@ -35,19 +35,52 @@ const protect = require("../../middlewares/auth");
  *         application/json:
  *           schema:
  *             type: object
- *             required: [items, serviceId, scheduledAt, totalAmount]
+ *             required: [services, address, amount, paymentMethod, scheduledAt, phoneNumber]
  *             properties:
- *               serviceId:
- *                 type: string
- *               items:
+ *               services:
  *                 type: array
  *                 items:
  *                   type: object
+ *                   properties:
+ *                     service:
+ *                       type: string
+ *                     quantity:
+ *                       type: number
+ *                     price:
+ *                       type: number
+ *                     gstAmount:
+ *                       type: number
+ *               address:
+ *                 type: object
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                   houseNo:
+ *                     type: string
+ *                   street:
+ *                     type: string
+ *                   landmark:
+ *                     type: string
+ *                   city:
+ *                     type: string
+ *                   state:
+ *                     type: string
+ *                   pincode:
+ *                     type: string
+ *               amount:
+ *                 type: number
+ *                 description: Total amount to pay (Base Price + GST)
+ *               totalGst:
+ *                 type: number
+ *                 description: Sum of GST for all services
+ *               paymentMethod:
+ *                 type: string
+ *                 enum: [COD, Online]
  *               scheduledAt:
  *                 type: string
  *                 format: date-time
- *               totalAmount:
- *                 type: number
+ *               phoneNumber:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Booking created
@@ -162,6 +195,10 @@ router.get("/getbookings", getAllBookings);
  *             properties:
  *               status:
  *                 type: string
+ *                 enum: [pending, confirmed, completed, cancelled]
+ *               paymentStatus:
+ *                 type: string
+ *                 enum: [pending, paid, failed]
  *     responses:
  *       200:
  *         description: Status updated

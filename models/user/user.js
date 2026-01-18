@@ -14,13 +14,15 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    required: [true, 'Please add a phone number'],
     match: [/^[0-9]{10}$/, 'Please enter a valid 10-digit phone number']
   },
   password: {
     type: String,
-    required: [true, 'Please add a password'],
     minlength: 6,
+  },
+  googleId: {
+    type: String,
+    default: null
   },
   addresses: [{
     name: String,
@@ -67,8 +69,8 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
-    next();
+  if (!this.isModified('password') || !this.password) {
+    return next();
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);

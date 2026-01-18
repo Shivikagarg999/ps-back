@@ -1,4 +1,6 @@
+require("dotenv").config();
 const express = require("express");
+
 const cors = require("cors");
 const connectDB = require("./config/db");
 
@@ -12,6 +14,10 @@ const favouriteRoutes = require("./routes/favourite/favouriteRoutes");
 const referralRoutes = require("./routes/user/referralRoutes");
 const otpRoutes = require("./routes/otp/otpRoutes");
 const notificationRoutes = require("./routes/notification/notificationRoutes");
+const paymentRoutes = require("./routes/payment/paymentRoutes");
+const offerRoutes = require("./routes/offer/offerRoutes");
+
+
 
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
@@ -39,6 +45,10 @@ app.use("/api/user/cart", cartRoutes);
 app.use("/api/user/favourites", favouriteRoutes);
 app.use("/api/user/referral", referralRoutes);
 app.use("/api/user/notifications", notificationRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/offers", offerRoutes);
+
+
 
 // Swagger Documentation Route
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

@@ -3,21 +3,21 @@ const Cart = require("../../models/cart/cart");
 const Booking = require("../../models/booking/booking");
 const Notification = require("../../models/notification/notification");
 
-// Create Booking from Cart
 exports.createBooking = async (req, res) => {
   try {
-    const { services, address, amount, paymentMethod, bookingDate, scheduledAt } = req.body;
+    const { services, address, amount, totalGst, paymentMethod, bookingDate, scheduledAt, phoneNumber } = req.body;
 
-    // Check required fields
-    if (!services || !amount || !paymentMethod || !address || !scheduledAt) {
-      return res.status(400).json({ msg: "All fields are required" });
+    if (!services || !amount || !paymentMethod || !address || !scheduledAt || !phoneNumber) {
+      return res.status(400).json({ msg: "All fields are required including phone number" });
     }
 
     const booking = new Booking({
       user: req.user._id,
       services,
       address,
-      amount,
+      phoneNumber,
+      amount, // This should be total (Base + GST)
+      totalGst: totalGst || 0,
       paymentMethod,
       bookingDate: bookingDate || Date.now(),
       scheduledAt,

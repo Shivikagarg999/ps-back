@@ -67,6 +67,32 @@ router.post('/register', authController.register);
  */
 router.post('/login', authController.login);
 
+/**
+ * @swagger
+ * /api/user/google-login:
+ *   post:
+ *     summary: Login or Register using Google
+ *     tags: [User Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [idToken]
+ *             properties:
+ *               idToken:
+ *                 type: string
+ *                 description: Firebase Google ID Token
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Invalid token
+ */
+router.post('/google-login', authController.googleLogin);
+
+
 // Password Reset Link Display Route (renders HTML)
 router.get('/reset-password/:token', async (req, res) => {
     try {

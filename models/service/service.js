@@ -15,6 +15,11 @@ const serviceSchema = new mongoose.Schema({
     required: [true, 'Please add a price'],
     min: [0, 'Price cannot be negative']
   },
+  gstAmount: {
+    type: Number,
+    default: 0,
+    min: [0, 'GST amount cannot be negative']
+  },
   duration: {
     type: Number,
     required: [true, 'Please add duration'],
@@ -38,7 +43,7 @@ const serviceSchema = new mongoose.Schema({
     default: true
   },
   isIncluded: {
-    type: [String], 
+    type: [String],
     validate: {
       validator: function (arr) {
         return arr.length <= 5;
