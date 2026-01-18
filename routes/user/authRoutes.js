@@ -43,6 +43,38 @@ router.post('/register', authController.register);
 
 /**
  * @swagger
+ * /api/user/create-admin:
+ *   post:
+ *     summary: Create a new admin user (Secure)
+ *     tags: [User Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, email, phone, password, adminSecretKey]
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               adminSecretKey:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Admin created successfully
+ *       401:
+ *         description: Unauthorized - Invalid secret key
+ */
+router.post('/create-admin', authController.createAdmin);
+
+/**
+ * @swagger
  * /api/user/login:
  *   post:
  *     summary: Login a user

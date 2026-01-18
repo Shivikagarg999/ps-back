@@ -16,6 +16,9 @@ const otpRoutes = require("./routes/otp/otpRoutes");
 const notificationRoutes = require("./routes/notification/notificationRoutes");
 const paymentRoutes = require("./routes/payment/paymentRoutes");
 const offerRoutes = require("./routes/offer/offerRoutes");
+const adminRoutes = require("./routes/admin/adminRoutes");
+const initPaymentCleanup = require("./utils/paymentCleanup");
+
 
 
 
@@ -23,6 +26,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 
 connectDB();
+initPaymentCleanup();
 
 const app = express();
 app.use(express.json());
@@ -47,6 +51,8 @@ app.use("/api/user/referral", referralRoutes);
 app.use("/api/user/notifications", notificationRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/offers", offerRoutes);
+app.use("/api/admin", adminRoutes);
+
 
 
 

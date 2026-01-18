@@ -57,6 +57,50 @@ exports.register = async (req, res) => {
   }
 };
 
+exports.createAdmin = async (req, res) => {
+  try {
+    const { name, email, phone, password, adminSecretKey } = req.body;
+
+    if (adminSecretKey !== process.env.ADMIN_SECRET_KEY) {
+      return res.status(401).json({ msg: "Unauthorized: Invalid admin secret key" });
+    }
+
+    if (!name || !email || !phone || !password) {
+      return res.status(400).json({ msg: "All fields are required" });
+    }
+
+    const existingUser = await User.findOne({
+      $or: [{ email }, { phone }]
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ msg: "Email or phone already registered" });
+    }
+
+    const admin = new User({
+      name,
+      email,
+      phone,
+      password,
+      role: 'admin'
+    });
+
+    await admin.save();
+
+    res.status(201).json({
+      msg: "Admin created successfully",
+      user: {
+        id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        role: admin.role
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};
+
 exports.login = async (req, res) => {
   try {
     const { email, phone, password } = req.body;

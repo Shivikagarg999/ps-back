@@ -26,7 +26,11 @@ exports.getNotifications = async (req, res) => {
                 message: notif.message,
                 type: notif.type,
                 isRead: notif.isRead,
-                createdAt: notif.createdAt,
+                createdAt: new Intl.DateTimeFormat('en-IN', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                    timeZone: 'Asia/Kolkata'
+                }).format(new Date(notif.createdAt)),
                 metadata: notif.metadata
             })),
         });
