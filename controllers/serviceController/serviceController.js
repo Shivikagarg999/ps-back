@@ -15,7 +15,14 @@ exports.createService = async (req, res) => {
       imageUrl = uploadResponse.url;
     }
 
-    const { name, description, price, gstAmount, duration, category, isPopular, isActive, isIncluded } = req.body;
+    let { name, description, price, gstAmount, duration, category, isPopular, isActive, isIncluded } = req.body;
+  if (typeof isIncluded === 'string') {
+      try {
+        isIncluded = JSON.parse(isIncluded);
+      } catch (error) {
+        return res.status(400).json({ success: false, message: "Invalid format for isIncluded" });
+      }
+    }
 
     if (!isIncluded || !Array.isArray(isIncluded) || isIncluded.length !== 5) {
       return res.status(400).json({
@@ -27,13 +34,13 @@ exports.createService = async (req, res) => {
     const service = await Service.create({
       name,
       description,
-      price,
-      gstAmount: gstAmount || 0,
-      duration,
+      price: Number(price),
+      gstAmount: Number(gstAmount || 0),
+      duration: Number(duration),
       category,
       imageUrl,
-      isPopular: isPopular || false,
-      isActive: isActive !== undefined ? isActive : true,
+      isPopular: isPopular === 'true' || isPopular === true,
+      isActive: isActive !== undefined ? (isActive === 'true' || isActive === true) : true,
       isIncluded
     });
 
@@ -77,6 +84,32 @@ exports.updateService = async (req, res) => {
         folder: '/services'
       });
       updateData.imageUrl = uploadResponse.url;
+    }
+
+    // Parse isIncluded if it's a string
+    if (updateData.isIncluded && typeof updateData.isIncluded === 'string') {
+      try {
+        updateData.isIncluded = JSON.parse(updateData.isIncluded);
+      } catch (error) {
+        return res.status(400).json({ success: false, message: "Invalid format for isIncluded" });
+      }
+    }
+
+    // Numeric conversions
+    if (updateData.price) updateData.price = Number(updateData.price);
+    if (updateData.gstAmount) updateData.gstAmount = Number(updateData.gstAmount);
+    if (updateData.duration) updateData.duration = Number(updateData.duration);
+
+    // Boolean conversions
+    if (updateData.isPopular !== undefined) updateData.isPopular = updateData.isPopular === 'true' || updateData.isPopular === true;
+    if (updateData.isActive !== undefined) updateData.isActive = updateData.isActive === 'true' || updateData.isActive === true;
+
+
+    if (updateData.isIncluded && (!Array.isArray(updateData.isIncluded) || updateData.isIncluded.length !== 5)) {
+      return res.status(400).json({
+        success: false,
+        message: "isIncluded must be an array of exactly 5 points"
+      });
     }
 
     const service = await Service.findByIdAndUpdate(req.params.id, updateData, {
