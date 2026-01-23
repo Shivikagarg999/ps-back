@@ -11,7 +11,7 @@ exports.createService = async (req, res) => {
     if (req.file) {
       try {
         const uploadResponse = await imagekit.upload({
-          file: req.file.buffer,
+          file: req.file.buffer.toString('base64'),
           fileName: `service_${Date.now()}`,
           folder: '/services'
         });
@@ -89,7 +89,7 @@ exports.updateService = async (req, res) => {
       console.log('Update Service - File received:', req.file.originalname);
       try {
         const uploadResponse = await imagekit.upload({
-          file: req.file.buffer,
+          file: req.file.buffer.toString('base64'),
           fileName: `service_${Date.now()}`,
           folder: '/services'
         });
