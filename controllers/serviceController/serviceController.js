@@ -6,17 +6,25 @@ exports.createService = async (req, res) => {
   try {
     let imageUrl = null;
 
+    console.log('Create Service - File received:', req.file ? req.file.originalname : 'No file');
+
     if (req.file) {
-      const uploadResponse = await imagekit.upload({
-        file: req.file.buffer,
-        fileName: `service_${Date.now()}`,
-        folder: '/services'
-      });
-      imageUrl = uploadResponse.url;
+      try {
+        const uploadResponse = await imagekit.upload({
+          file: req.file.buffer,
+          fileName: `service_${Date.now()}`,
+          folder: '/services'
+        });
+        console.log('ImageKit Upload Response:', uploadResponse);
+        imageUrl = uploadResponse.url;
+      } catch (uploadError) {
+        console.error('ImageKit Upload Error:', uploadError);
+        return res.status(500).json({ success: false, message: "Image upload failed: " + uploadError.message });
+      }
     }
 
     let { name, description, price, gstAmount, duration, category, isPopular, isActive, isIncluded } = req.body;
-  if (typeof isIncluded === 'string') {
+    if (typeof isIncluded === 'string') {
       try {
         isIncluded = JSON.parse(isIncluded);
       } catch (error) {
@@ -78,12 +86,19 @@ exports.updateService = async (req, res) => {
     let updateData = { ...req.body };
 
     if (req.file) {
-      const uploadResponse = await imagekit.upload({
-        file: req.file.buffer,
-        fileName: `service_${Date.now()}`,
-        folder: '/services'
-      });
-      updateData.imageUrl = uploadResponse.url;
+      console.log('Update Service - File received:', req.file.originalname);
+      try {
+        const uploadResponse = await imagekit.upload({
+          file: req.file.buffer,
+          fileName: `service_${Date.now()}`,
+          folder: '/services'
+        });
+        console.log('ImageKit Upload Response (Update):', uploadResponse);
+        updateData.imageUrl = uploadResponse.url;
+      } catch (uploadError) {
+        console.error('ImageKit Upload Error (Update):', uploadError);
+        return res.status(500).json({ success: false, message: "Image upload failed: " + uploadError.message });
+      }
     }
 
     // Parse isIncluded if it's a string
