@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const analyticsController = require("../../controllers/adminController/analyticsController");
 const authController = require("../../controllers/adminController/authController");
+const userController = require("../../controllers/adminController/userController");
+const bookingController = require("../../controllers/bookingController/booking");
 const protect = require("../../middlewares/auth");
 
 /**
@@ -175,5 +177,33 @@ router.get("/analytics/bookings", analyticsController.getBookingStats);
  *         description: Daily revenue stats
  */
 router.get("/analytics/revenue", analyticsController.getRevenueStats);
+
+/**
+ * @swagger
+ * /api/admin/users:
+ *   get:
+ *     summary: Get all users (customers)
+ *     tags: [Admin Panel]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all users
+ */
+router.get("/users", userController.getAllUsers);
+
+/**
+ * @swagger
+ * /api/admin/bookings:
+ *   get:
+ *     summary: Get all bookings
+ *     tags: [Admin Panel]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all bookings
+ */
+router.get("/bookings", bookingController.getAllBookings);
 
 module.exports = router;
