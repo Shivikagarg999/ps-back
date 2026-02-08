@@ -18,10 +18,6 @@ const paymentRoutes = require("./routes/payment/paymentRoutes");
 const offerRoutes = require("./routes/offer/offerRoutes");
 const adminRoutes = require("./routes/admin/adminRoutes");
 const initPaymentCleanup = require("./utils/paymentCleanup");
-
-
-
-
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 
@@ -33,9 +29,13 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: '*',
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      return callback(null, true);
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -52,13 +52,7 @@ app.use("/api/user/notifications", notificationRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/offers", offerRoutes);
 app.use("/api/admin", adminRoutes);
-
-
-
-
-// Swagger Documentation Route
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
 
 app.get("/health", (req, res) => {
   res.status(200).json({

@@ -6,17 +6,20 @@ exports.adminLogin = async (req, res) => {
         const { email, password } = req.body;
 
         if (!email || !password) {
+            console.log("Admin Login: Missing email or password");
             return res.status(400).json({ success: false, message: "Email and password are required" });
         }
 
         const user = await User.findOne({ email });
 
         if (!user || user.role !== "admin") {
+            console.log(`Admin Login: User not found or not admin for email: ${email}`);
             return res.status(401).json({ success: false, message: "Invalid credentials or not an admin" });
         }
 
         const isMatch = await user.matchPassword(password);
         if (!isMatch) {
+            console.log(`Admin Login: Password mismatch for email: ${email}`);
             return res.status(401).json({ success: false, message: "Invalid credentials" });
         }
 
