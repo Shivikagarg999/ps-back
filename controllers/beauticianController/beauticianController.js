@@ -21,6 +21,10 @@ const uploadToImageKit = async (fileBuffer, fileName, folder = "beauticians") =>
 
 // 📌 Register new beautician
 const registerBeautician = async (req, res) => {
+  console.log("Register Beautician - Start");
+  console.log("Body:", req.body);
+  console.log("Files:", req.files ? Object.keys(req.files) : "No files");
+
   try {
     const {
       name,
@@ -55,12 +59,17 @@ const registerBeautician = async (req, res) => {
     const files = req.files || {};
     let aadhaarUrl = "", panCardUrl = "", joiningLetterUrl = "", signedJoiningLetterUrl = "", signedOfferLetterUrl = "", profilePicUrl = "";
 
-    if (files.aadhaarImage) aadhaarUrl = await uploadToImageKit(files.aadhaarImage[0].buffer, files.aadhaarImage[0].originalname);
-    if (files.panImage) panCardUrl = await uploadToImageKit(files.panImage[0].buffer, files.panImage[0].originalname);
-    if (files.joiningLetter) joiningLetterUrl = await uploadToImageKit(files.joiningLetter[0].buffer, files.joiningLetter[0].originalname);
-    if (files.signedJoiningLetter) signedJoiningLetterUrl = await uploadToImageKit(files.signedJoiningLetter[0].buffer, files.signedJoiningLetter[0].originalname);
-    if (files.signedOfferLetter) signedOfferLetterUrl = await uploadToImageKit(files.signedOfferLetter[0].buffer, files.signedOfferLetter[0].originalname);
-    if (files.profilePic) profilePicUrl = await uploadToImageKit(files.profilePic[0].buffer, files.profilePic[0].originalname);
+    try {
+      if (files.aadhaarImage) aadhaarUrl = await uploadToImageKit(files.aadhaarImage[0].buffer, files.aadhaarImage[0].originalname);
+      if (files.panImage) panCardUrl = await uploadToImageKit(files.panImage[0].buffer, files.panImage[0].originalname);
+      if (files.joiningLetter) joiningLetterUrl = await uploadToImageKit(files.joiningLetter[0].buffer, files.joiningLetter[0].originalname);
+      if (files.signedJoiningLetter) signedJoiningLetterUrl = await uploadToImageKit(files.signedJoiningLetter[0].buffer, files.signedJoiningLetter[0].originalname);
+      if (files.signedOfferLetter) signedOfferLetterUrl = await uploadToImageKit(files.signedOfferLetter[0].buffer, files.signedOfferLetter[0].originalname);
+      if (files.profilePic) profilePicUrl = await uploadToImageKit(files.profilePic[0].buffer, files.profilePic[0].originalname);
+    } catch (uploadError) {
+      console.error("File upload failed specifically:", uploadError);
+      return res.status(500).json({ message: "File upload failed", error: uploadError.message });
+    }
 
     const beautician = new Beautician({
       name,
@@ -96,7 +105,14 @@ const registerBeautician = async (req, res) => {
     res.status(201).json({ message: "Beautician registered successfully", beautician });
   } catch (error) {
     console.error("Error registering beautician:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+
+    // Handle Mongoose Duplicate Key Error
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      return res.status(400).json({ message: `Duplicate value for field: ${field}`, error: error.message });
+    }
+
+    res.status(500).json({ message: "Server error", error: error.message, stack: error.stack });
   }
 };
 
