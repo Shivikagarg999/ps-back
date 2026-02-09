@@ -20,7 +20,7 @@ exports.createOrder = async (req, res) => {
         }
 
         const options = {
-            amount: amount * 100, 
+            amount: amount * 100,
             currency,
             receipt: receipt || `receipt_${Date.now()}`,
         };
@@ -30,7 +30,7 @@ exports.createOrder = async (req, res) => {
         res.status(200).json({
             success: true,
             orderId: order.id,
-            keyId: process.env.RAZORPAY_KEY_ID, 
+            keyId: process.env.RAZORPAY_KEY_ID,
             amount: order.amount,
             currency: order.currency,
         });
@@ -60,7 +60,7 @@ exports.verifyPayment = async (req, res) => {
             if (bookingId) {
                 await Booking.findByIdAndUpdate(bookingId, {
                     paymentStatus: "paid",
-                    paymentMethod: "Online", 
+                    paymentMethod: "Online",
                 });
             }
 
@@ -77,5 +77,28 @@ exports.verifyPayment = async (req, res) => {
     } catch (error) {
         console.error("Razorpay Verify Error:", error);
         res.status(500).json({ success: false, message: "Payment verification error", error: error.message });
+    }
+};
+
+/**
+ * Get All Transactions
+ */
+exports.getAllTransactions = async (req, res) => {
+    try {
+        const { count = 100, skip = 0 } = req.query;
+
+        const payments = await razorpay.payments.all({
+            count: parseInt(count),
+            skip: parseInt(skip),
+        });
+
+        res.status(200).json({
+            success: true,
+            count: payments.count,
+            items: payments.items
+        });
+    } catch (error) {
+        console.error("Razorpay Fetch Transactions Error:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch transactions", error: error.message });
     }
 };

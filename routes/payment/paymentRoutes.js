@@ -3,7 +3,10 @@ const router = express.Router();
 const paymentController = require("../../controllers/paymentController/paymentController");
 const protect = require("../../middlewares/auth");
 
-router.use(protect);
+router.use(protect); // Applies to all routes below
+
+// Get All Transactions
+router.get("/transactions", paymentController.getAllTransactions);
 
 
 /**
