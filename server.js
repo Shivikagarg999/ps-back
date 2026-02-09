@@ -35,7 +35,9 @@ app.use(
         "http://localhost:5174",
         "http://localhost:3000",
         "https://prettysaheli.com",
-        "https://www.prettysaheli.com"
+        "https://www.prettysaheli.com",
+        "https://ps-admin-front.vercel.app",
+        "https://admin.prettysaheli.com"
       ];
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
