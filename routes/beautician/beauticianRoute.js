@@ -10,12 +10,7 @@ const {
   assignBeauticianToBooking,
 } = require("../../controllers/beauticianController/beauticianController");
 
-/**
- * @swagger
- * tags:
- *   name: Beauticians
- *   description: Beautician management APIs
- */
+const upload = require("../../middlewares/upload");
 
 /**
  * @swagger
@@ -26,10 +21,10 @@ const {
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
- *             required: [name, phone, email, expertise]
+ *             required: [name, phone, email]
  *             properties:
  *               name:
  *                 type: string
@@ -37,15 +32,37 @@ const {
  *                 type: string
  *               email:
  *                 type: string
- *               expertise:
- *                 type: array
- *                 items:
- *                   type: string
+ *               aadhaarImage:
+ *                 type: string
+ *                 format: binary
+ *               panImage:
+ *                 type: string
+ *                 format: binary
+ *               joiningLetter:
+ *                 type: string
+ *                 format: binary
+ *               signedOfferLetter:
+ *                 type: string
+ *                 format: binary
+ *               profilePic:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       201:
  *         description: Beautician registered successfully
  */
-router.post("/register", registerBeautician);
+router.post(
+  "/register",
+  upload.fields([
+    { name: "aadhaarImage", maxCount: 1 },
+    { name: "panImage", maxCount: 1 },
+    { name: "joiningLetter", maxCount: 1 },
+    { name: "signedJoiningLetter", maxCount: 1 },
+    { name: "signedOfferLetter", maxCount: 1 },
+    { name: "profilePic", maxCount: 1 },
+  ]),
+  registerBeautician
+);
 
 /**
  * @swagger
@@ -87,7 +104,7 @@ router.get("/", getAllBeauticians);
  *           type: string
  *     requestBody:
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *     responses:
@@ -107,7 +124,18 @@ router.get("/", getAllBeauticians);
  *         description: Deleted successfully
  */
 router.get("/:beauticianId", getBeauticianById);
-router.put("/:beauticianId", updateBeautician);
+router.put(
+  "/:beauticianId",
+  upload.fields([
+    { name: "aadhaarImage", maxCount: 1 },
+    { name: "panImage", maxCount: 1 },
+    { name: "joiningLetter", maxCount: 1 },
+    { name: "signedJoiningLetter", maxCount: 1 },
+    { name: "signedOfferLetter", maxCount: 1 },
+    { name: "profilePic", maxCount: 1 },
+  ]),
+  updateBeautician
+);
 router.delete("/:beauticianId", deleteBeautician);
 
 /**

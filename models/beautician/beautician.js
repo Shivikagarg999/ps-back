@@ -11,7 +11,7 @@ const beauticianSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      match: /^[6-9]\d{9}$/, // Indian phone number validation
+      match: /^[6-9]\d{9}$/,
     },
     email: {
       type: String,
@@ -19,15 +19,14 @@ const beauticianSchema = new mongoose.Schema(
       lowercase: true,
     },
 
-    // Aadhaar details
     aadhaarNumber: {
       type: String,
       required: true,
       unique: true,
-      match: /^[0-9]{12}$/, // 12-digit Aadhaar
+      match: /^[0-9]{12}$/,
     },
     aadhaarImage: {
-      type: String, // URL of uploaded Aadhaar card
+      type: String,
     },
 
     services: [
@@ -43,8 +42,8 @@ const beauticianSchema = new mongoose.Schema(
 
     availability: [
       {
-        date: String, // YYYY-MM-DD
-        slots: [String], // e.g. ["10:00-11:00", "11:00-12:00"]
+        date: String,
+        slots: [String],
       },
     ],
 
@@ -57,6 +56,21 @@ const beauticianSchema = new mongoose.Schema(
     profilePic: {
       type: String,
     },
+
+    age: { type: Number },
+    joiningDate: { type: Date },
+    alternatePhone: { type: String },
+    bookingReferral: { type: String },
+    skills: [{ type: String }],
+    salary: { type: Number },
+
+    panNumber: { type: String },
+    panCardImage: { type: String }, 
+
+    joiningLetter: { type: String }, 
+    signedJoiningLetter: { type: String }, 
+
+    signedOfferLetter: { type: String }, 
 
     rating: {
       type: Number,
