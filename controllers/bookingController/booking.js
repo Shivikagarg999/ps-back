@@ -92,7 +92,7 @@ exports.cancelBooking = async (req, res) => {
 exports.getAllBookings = async (req, res) => {
   try {
     const bookings = await Booking.find()
-      .populate("services.service", "name price duration")
+      .populate("services.service", "name price duration gstAmount")
       .populate("user", "name email phone")
       .sort({ createdAt: -1 });
 
@@ -159,7 +159,7 @@ exports.deleteBooking = async (req, res) => {
 exports.getMyPendingBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user._id, status: "pending" })
-      .populate("services.service", "name price duration")
+      .populate("services.service", "name price duration gstAmount")
       .sort({ createdAt: -1 });
 
     res.json({ success: true, data: bookings });
@@ -172,7 +172,7 @@ exports.getMyPendingBookings = async (req, res) => {
 exports.getMyCompletedBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user._id, status: "completed" })
-      .populate("services.service", "name price duration")
+      .populate("services.service", "name price duration gstAmount")
       .sort({ createdAt: -1 });
 
     res.json({ success: true, data: bookings });
@@ -185,7 +185,7 @@ exports.getMyCompletedBookings = async (req, res) => {
 exports.getMyCancelledBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user._id, status: "cancelled" })
-      .populate("services.service", "name price duration")
+      .populate("services.service", "name price duration gstAmount")
       .sort({ createdAt: -1 });
 
     res.json({ success: true, data: bookings });
@@ -198,7 +198,7 @@ exports.getMyCancelledBookings = async (req, res) => {
 exports.getMyBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user._id })
-      .populate("services.service", "name price duration")
+      .populate("services.service", "name price duration gstAmount")
       .sort({ createdAt: -1 });
 
     res.json({ success: true, data: bookings });

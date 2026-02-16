@@ -41,6 +41,7 @@ exports.addToCart = async (req, res) => {
     cart.grandTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
 
     await cart.save();
+    await cart.populate("items.service");
     res.status(200).json({ success: true, cart });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -61,6 +62,7 @@ exports.removeFromCart = async (req, res) => {
     cart.grandTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
 
     await cart.save();
+    await cart.populate("items.service");
     res.status(200).json({ success: true, cart });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -89,6 +91,7 @@ exports.updateQuantity = async (req, res) => {
     cart.grandTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
 
     await cart.save();
+    await cart.populate("items.service");
     res.status(200).json({ success: true, cart });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

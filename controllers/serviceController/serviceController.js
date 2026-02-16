@@ -101,7 +101,6 @@ exports.updateService = async (req, res) => {
       }
     }
 
-    // Parse isIncluded if it's a string
     if (updateData.isIncluded && typeof updateData.isIncluded === 'string') {
       try {
         updateData.isIncluded = JSON.parse(updateData.isIncluded);
@@ -110,15 +109,12 @@ exports.updateService = async (req, res) => {
       }
     }
 
-    // Numeric conversions
     if (updateData.price) updateData.price = Number(updateData.price);
     if (updateData.gstAmount) updateData.gstAmount = Number(updateData.gstAmount);
     if (updateData.duration) updateData.duration = Number(updateData.duration);
 
-    // Boolean conversions
     if (updateData.isPopular !== undefined) updateData.isPopular = updateData.isPopular === 'true' || updateData.isPopular === true;
     if (updateData.isActive !== undefined) updateData.isActive = updateData.isActive === 'true' || updateData.isActive === true;
-
 
     if (updateData.isIncluded && (!Array.isArray(updateData.isIncluded) || updateData.isIncluded.length !== 5)) {
       return res.status(400).json({
