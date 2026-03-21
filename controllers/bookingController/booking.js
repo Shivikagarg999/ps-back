@@ -39,7 +39,7 @@ exports.createBooking = async (req, res) => {
     // Clear the user's cart after successful booking
     await Cart.findOneAndUpdate(
       { user: req.user._id },
-      { $set: { items: [], packages: [], grandTotal: 0 } }
+      { $set: { items: [], packageItems: [], grandTotal: 0 } }
     );
 
     // Trigger Notification
