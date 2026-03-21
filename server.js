@@ -39,7 +39,8 @@ app.use(
         "https://prettysaheli.com",
         "https://www.prettysaheli.com",
         "https://ps-admin-front.vercel.app",
-        "https://admin.prettysaheli.com"
+        "https://admin.prettysaheli.com",
+        "https://ps-admin-front-6e2s.vercel.app"
       ];
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
