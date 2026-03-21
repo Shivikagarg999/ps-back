@@ -57,7 +57,7 @@ exports.createBooking = async (req, res) => {
       metadata: { bookingId: booking._id }
     });
 
-    await booking.populate("services.service", "name price duration gstAmount");
+    await booking.populate("services.service", "name imageUrl price duration gstAmount");
     await booking.populate("packages.package", "name price gstAmount discountPercentage services");
 
     res.status(201).json(booking);
@@ -104,7 +104,7 @@ exports.cancelBooking = async (req, res) => {
 exports.getAllBookings = async (req, res) => {
   try {
     const bookings = await Booking.find()
-      .populate("services.service", "name price duration gstAmount")
+      .populate("services.service", "name imageUrl price duration gstAmount")
       .populate("packages.package", "name price gstAmount discountPercentage services")
       .populate("user", "name email phone")
       .sort({ createdAt: -1 });
@@ -172,7 +172,7 @@ exports.deleteBooking = async (req, res) => {
 exports.getMyPendingBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user._id, status: "pending" })
-      .populate("services.service", "name price duration gstAmount")
+      .populate("services.service", "name imageUrl price duration gstAmount")
       .populate("packages.package", "name price gstAmount discountPercentage services")
       .sort({ createdAt: -1 });
 
@@ -186,7 +186,7 @@ exports.getMyPendingBookings = async (req, res) => {
 exports.getMyCompletedBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user._id, status: "completed" })
-      .populate("services.service", "name price duration gstAmount")
+      .populate("services.service", "name imageUrl price duration gstAmount")
       .populate("packages.package", "name price gstAmount discountPercentage services")
       .sort({ createdAt: -1 });
 
@@ -200,7 +200,7 @@ exports.getMyCompletedBookings = async (req, res) => {
 exports.getMyCancelledBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user._id, status: "cancelled" })
-      .populate("services.service", "name price duration gstAmount")
+      .populate("services.service", "name imageUrl price duration gstAmount")
       .populate("packages.package", "name price gstAmount discountPercentage services")
       .sort({ createdAt: -1 });
 
@@ -214,7 +214,7 @@ exports.getMyCancelledBookings = async (req, res) => {
 exports.getMyBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user._id })
-      .populate("services.service", "name price duration gstAmount")
+      .populate("services.service", "name imageUrl price duration gstAmount")
       .populate("packages.package", "name price gstAmount discountPercentage services")
       .sort({ createdAt: -1 });
 

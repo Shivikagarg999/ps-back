@@ -21,7 +21,7 @@ exports.addToCart = async (req, res) => {
     let cart = await Cart.findOne({ user: userId });
 
     if (!cart) {
-      cart = new Cart({ user: userId, items: [], packages: [] });
+      cart = new Cart({ user: userId, items: [], packageItems: [] });
     }
 
     // check if item already exists
@@ -40,11 +40,11 @@ exports.addToCart = async (req, res) => {
 
     // recalc grand total (services + packages)
     const servicesTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
-    const packagesTotal = cart.packages.reduce((sum, pkg) => sum + pkg.totalPrice, 0);
+    const packagesTotal = cart.packageItems.reduce((sum, pkg) => sum + pkg.totalPrice, 0);
     cart.grandTotal = servicesTotal + packagesTotal;
 
     await cart.save();
-    await cart.populate(["items.service", "packages.package"]);
+    await cart.populate(["items.service", "packageItems.package"]);
     res.status(200).json({ success: true, cart });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -64,11 +64,11 @@ exports.removeFromCart = async (req, res) => {
 
     // Recalculate grand total (services + packages)
     const servicesTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
-    const packagesTotal = cart.packages.reduce((sum, pkg) => sum + pkg.totalPrice, 0);
+    const packagesTotal = cart.packageItems.reduce((sum, pkg) => sum + pkg.totalPrice, 0);
     cart.grandTotal = servicesTotal + packagesTotal;
 
     await cart.save();
-    await cart.populate(["items.service", "packages.package"]);
+    await cart.populate(["items.service", "packageItems.package"]);
     res.status(200).json({ success: true, cart });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -96,11 +96,11 @@ exports.updateQuantity = async (req, res) => {
 
     // Recalculate grand total (services + packages)
     const servicesTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
-    const packagesTotal = cart.packages.reduce((sum, pkg) => sum + pkg.totalPrice, 0);
+    const packagesTotal = cart.packageItems.reduce((sum, pkg) => sum + pkg.totalPrice, 0);
     cart.grandTotal = servicesTotal + packagesTotal;
 
     await cart.save();
-    await cart.populate(["items.service", "packages.package"]);
+    await cart.populate(["items.service", "packageItems.package"]);
     res.status(200).json({ success: true, cart });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -128,11 +128,11 @@ exports.addPackageToCart = async (req, res) => {
     let cart = await Cart.findOne({ user: userId });
 
     if (!cart) {
-      cart = new Cart({ user: userId, items: [], packages: [] });
+      cart = new Cart({ user: userId, items: [], packageItems: [] });
     }
 
     // Check if package already exists in cart
-    const existingPackage = cart.packages.find(
+    const existingPackage = cart.packageItems.find(
       (pkg) => pkg.package.toString() === packageId
     );
 
@@ -140,18 +140,18 @@ exports.addPackageToCart = async (req, res) => {
       existingPackage.quantity += quantity;
       existingPackage.totalPrice = existingPackage.totalPrice + totalPrice;
     } else {
-      cart.packages.push({ package: packageId, quantity, totalPrice });
+      cart.packageItems.push({ package: packageId, quantity, totalPrice });
     }
 
     // Recalculate grand total
     const servicesTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
-    const packagesTotal = cart.packages.reduce((sum, pkg) => sum + pkg.totalPrice, 0);
+    const packagesTotal = cart.packageItems.reduce((sum, pkg) => sum + pkg.totalPrice, 0);
     cart.grandTotal = servicesTotal + packagesTotal;
 
     await cart.save();
     await cart.populate([
       { path: "items.service" },
-      { path: "packages.package" }
+      { path: "packageItems.package" }
     ]);
     res.status(200).json({ success: true, cart });
   } catch (err) {
@@ -168,19 +168,19 @@ exports.removePackageFromCart = async (req, res) => {
     let cart = await Cart.findOne({ user: userId });
     if (!cart) return res.status(404).json({ success: false, message: "Cart not found" });
 
-    cart.packages = cart.packages.filter(
+    cart.packageItems = cart.packageItems.filter(
       (pkg) => pkg.package.toString() !== packageId
     );
 
     // Recalculate grand total
     const servicesTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
-    const packagesTotal = cart.packages.reduce((sum, pkg) => sum + pkg.totalPrice, 0);
+    const packagesTotal = cart.packageItems.reduce((sum, pkg) => sum + pkg.totalPrice, 0);
     cart.grandTotal = servicesTotal + packagesTotal;
 
     await cart.save();
     await cart.populate([
       { path: "items.service" },
-      { path: "packages.package" }
+      { path: "packageItems.package" }
     ]);
     res.status(200).json({ success: true, cart });
   } catch (err) {
@@ -195,10 +195,10 @@ exports.updatePackageQuantity = async (req, res) => {
     const { packageId } = req.params;
     const { quantity } = req.body;
 
-    let cart = await Cart.findOne({ user: userId }).populate(["items.service", "packages.package"]);
+    let cart = await Cart.findOne({ user: userId }).populate(["items.service", "packageItems.package"]);
     if (!cart) return res.status(404).json({ success: false, message: "Cart not found" });
 
-    const packageItem = cart.packages.find(
+    const packageItem = cart.packageItems.find(
       (pkg) => pkg.package._id.toString() === packageId
     );
     if (!packageItem) return res.status(404).json({ success: false, message: "Package not found in cart" });
@@ -211,13 +211,13 @@ exports.updatePackageQuantity = async (req, res) => {
 
     // Recalculate grand total
     const servicesTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
-    const packagesTotal = cart.packages.reduce((sum, pkg) => sum + pkg.totalPrice, 0);
+    const packagesTotal = cart.packageItems.reduce((sum, pkg) => sum + pkg.totalPrice, 0);
     cart.grandTotal = servicesTotal + packagesTotal;
 
     await cart.save();
     await cart.populate([
       { path: "items.service" },
-      { path: "packages.package" }
+      { path: "packageItems.package" }
     ]);
     res.status(200).json({ success: true, cart });
   } catch (err) {
@@ -239,7 +239,7 @@ exports.getCart = async (req, res) => {
         model: "Service"
       },
       {
-        path: "packages.package",
+        path: "packageItems.package",
         model: "Package",
         populate: {
           path: "services",
@@ -251,7 +251,7 @@ exports.getCart = async (req, res) => {
     if (!cart) {
       return res.status(200).json({ 
         success: true, 
-        cart: { items: [], packages: [], grandTotal: 0 } 
+        cart: { items: [], packageItems: [], grandTotal: 0 }
       });
     }
 

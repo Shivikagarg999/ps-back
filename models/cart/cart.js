@@ -31,7 +31,7 @@ const cartSchema = new mongoose.Schema(
         },
       },
     ],
-    packages: [
+    packageItems: [
       {
         package: {
           type: mongoose.Schema.Types.ObjectId,
