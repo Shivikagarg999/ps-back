@@ -1,7 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const protect = require("../../middlewares/auth");
-const { addToCart, removeFromCart, updateQuantity, getCart } = require("../../controllers/cartcontroller/cartController");
+const { 
+  addToCart, 
+  removeFromCart, 
+  updateQuantity, 
+  getCart,
+  addPackageToCart,
+  removePackageFromCart,
+  updatePackageQuantity
+} = require("../../controllers/cartcontroller/cartController");
 
 /**
  * @swagger
@@ -99,5 +107,81 @@ router.delete("/remove/:itemId", protect, removeFromCart);
  *         description: Quantity updated
  */
 router.put("/update/:itemId", protect, updateQuantity);
+
+/**
+ * @swagger
+ * /api/user/cart/package/add:
+ *   post:
+ *     summary: Add package to cart
+ *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [packageId, quantity]
+ *             properties:
+ *               packageId:
+ *                 type: string
+ *               quantity:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Package added to cart
+ */
+router.post("/package/add", protect, addPackageToCart);
+
+/**
+ * @swagger
+ * /api/user/cart/package/remove/{packageId}:
+ *   delete:
+ *     summary: Remove package from cart
+ *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: packageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Package removed from cart
+ */
+router.delete("/package/remove/:packageId", protect, removePackageFromCart);
+
+/**
+ * @swagger
+ * /api/user/cart/package/update/{packageId}:
+ *   put:
+ *     summary: Update package quantity in cart
+ *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: packageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [quantity]
+ *             properties:
+ *               quantity:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Package quantity updated
+ */
+router.put("/package/update/:packageId", protect, updatePackageQuantity);
 
 module.exports = router;

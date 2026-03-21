@@ -23,7 +23,7 @@ const serviceSchema = new mongoose.Schema({
   duration: {
     type: Number,
     required: [true, 'Please add duration'],
-    min: [15, 'Minimum duration is 15 minutes']
+    min: [0, 'Duration cannot be negative']
   },
   category: {
     type: mongoose.Schema.Types.ObjectId,

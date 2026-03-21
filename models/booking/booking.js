@@ -23,6 +23,7 @@ const bookingSchema = new mongoose.Schema(
         price: {
           type: Number,
           required: true,
+          min: 0,
         },
         gstAmount: {
           type: Number,
@@ -35,6 +36,30 @@ const bookingSchema = new mongoose.Schema(
           },
         ],
       },
+    ],
+    
+    packages: [
+      {
+        package: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Package",
+          required: true,
+        },
+        quantity: {
+          type: Number,
+          default: 1,
+          min: 1,
+        },
+        price: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+        gstAmount: {
+          type: Number,
+          default: 0,
+        }
+      }
     ],
 
     totalGst: {

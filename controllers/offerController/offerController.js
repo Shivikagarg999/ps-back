@@ -20,7 +20,7 @@ exports.createOffer = async (req, res) => {
 
         const offer = await Offer.create({
             imageUrl: uploadResponse.url,
-            isActive: req.body.isActive !== undefined ? req.body.isActive : true,
+            isActive: req.body.isActive === 'true' || req.body.isActive === true,
         });
 
         res.status(201).json({ success: true, data: offer });
@@ -67,7 +67,7 @@ exports.updateOffer = async (req, res) => {
         let updateData = {};
 
         if (req.body.isActive !== undefined) {
-            updateData.isActive = req.body.isActive;
+            updateData.isActive = req.body.isActive === 'true' || req.body.isActive === true;
         }
 
         if (req.file) {

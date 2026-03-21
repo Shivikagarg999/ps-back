@@ -5,15 +5,24 @@ const Notification = require("../../models/notification/notification");
 
 exports.createBooking = async (req, res) => {
   try {
-    const { services, address, amount, totalGst, paymentMethod, bookingDate, scheduledAt, phoneNumber } = req.body;
+    const { services, packages, address, amount, totalGst, paymentMethod, bookingDate, scheduledAt, phoneNumber } = req.body;
 
-    if (!services || !amount || !paymentMethod || !address || !scheduledAt || !phoneNumber) {
+    if ((!services || services.length === 0) && (!packages || packages.length === 0)) {
+       return res.status(400).json({ msg: "Please select at least one service or package" });
+    }
+
+    if (!amount || !paymentMethod || !address || !scheduledAt || !phoneNumber) {
       return res.status(400).json({ msg: "All fields are required including phone number" });
+    }
+
+    if (amount < 1000) {
+      return res.status(400).json({ msg: "Minimum 1k booking amt is required" });
     }
 
     const booking = new Booking({
       user: req.user._id,
-      services,
+      services: services || [],
+      packages: packages || [],
       address,
       phoneNumber,
       amount, // This should be total (Base + GST)
@@ -30,7 +39,7 @@ exports.createBooking = async (req, res) => {
     // Clear the user's cart after successful booking
     await Cart.findOneAndUpdate(
       { user: req.user._id },
-      { $set: { items: [], grandTotal: 0 } }
+      { $set: { items: [], packages: [], grandTotal: 0 } }
     );
 
     // Trigger Notification
@@ -47,6 +56,9 @@ exports.createBooking = async (req, res) => {
       type: "booking",
       metadata: { bookingId: booking._id }
     });
+
+    await booking.populate("services.service", "name price duration gstAmount");
+    await booking.populate("packages.package", "name price gstAmount discountPercentage services");
 
     res.status(201).json(booking);
   } catch (error) {
@@ -93,6 +105,7 @@ exports.getAllBookings = async (req, res) => {
   try {
     const bookings = await Booking.find()
       .populate("services.service", "name price duration gstAmount")
+      .populate("packages.package", "name price gstAmount discountPercentage services")
       .populate("user", "name email phone")
       .sort({ createdAt: -1 });
 
@@ -160,6 +173,7 @@ exports.getMyPendingBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user._id, status: "pending" })
       .populate("services.service", "name price duration gstAmount")
+      .populate("packages.package", "name price gstAmount discountPercentage services")
       .sort({ createdAt: -1 });
 
     res.json({ success: true, data: bookings });
@@ -173,6 +187,7 @@ exports.getMyCompletedBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user._id, status: "completed" })
       .populate("services.service", "name price duration gstAmount")
+      .populate("packages.package", "name price gstAmount discountPercentage services")
       .sort({ createdAt: -1 });
 
     res.json({ success: true, data: bookings });
@@ -186,6 +201,7 @@ exports.getMyCancelledBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user._id, status: "cancelled" })
       .populate("services.service", "name price duration gstAmount")
+      .populate("packages.package", "name price gstAmount discountPercentage services")
       .sort({ createdAt: -1 });
 
     res.json({ success: true, data: bookings });
@@ -199,6 +215,7 @@ exports.getMyBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user._id })
       .populate("services.service", "name price duration gstAmount")
+      .populate("packages.package", "name price gstAmount discountPercentage services")
       .sort({ createdAt: -1 });
 
     res.json({ success: true, data: bookings });

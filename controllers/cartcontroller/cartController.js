@@ -1,10 +1,11 @@
 const Cart = require("../../models/cart/cart");
 const Service = require("../../models/service/service");
+const Package = require("../../models/package/package");
 
 // ➕ Add to Cart
 exports.addToCart = async (req, res) => {
   try {
-    const userId = req.user._id; // from auth middleware
+    const userId = req.user._id;
     const { serviceId, addons = [], quantity = 1 } = req.body;
 
     const service = await Service.findById(serviceId);
@@ -12,7 +13,7 @@ exports.addToCart = async (req, res) => {
       return res.status(404).json({ success: false, message: "Service not found" });
     }
 
-    // calculate total price for this item
+    // calculate total price for this item  
     const addonsTotal = addons.reduce((sum, addon) => sum + addon.price, 0);
     const totalPrice = (service.price + addonsTotal) * quantity;
 
@@ -20,7 +21,7 @@ exports.addToCart = async (req, res) => {
     let cart = await Cart.findOne({ user: userId });
 
     if (!cart) {
-      cart = new Cart({ user: userId, items: [] });
+      cart = new Cart({ user: userId, items: [], packages: [] });
     }
 
     // check if item already exists
@@ -37,11 +38,13 @@ exports.addToCart = async (req, res) => {
       cart.items.push({ service: serviceId, addons, quantity, totalPrice });
     }
 
-    // recalc grand total
-    cart.grandTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
+    // recalc grand total (services + packages)
+    const servicesTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
+    const packagesTotal = cart.packages.reduce((sum, pkg) => sum + pkg.totalPrice, 0);
+    cart.grandTotal = servicesTotal + packagesTotal;
 
     await cart.save();
-    await cart.populate("items.service");
+    await cart.populate(["items.service", "packages.package"]);
     res.status(200).json({ success: true, cart });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -59,10 +62,13 @@ exports.removeFromCart = async (req, res) => {
 
     cart.items = cart.items.filter((item) => item._id.toString() !== itemId);
 
-    cart.grandTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
+    // Recalculate grand total (services + packages)
+    const servicesTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
+    const packagesTotal = cart.packages.reduce((sum, pkg) => sum + pkg.totalPrice, 0);
+    cart.grandTotal = servicesTotal + packagesTotal;
 
     await cart.save();
-    await cart.populate("items.service");
+    await cart.populate(["items.service", "packages.package"]);
     res.status(200).json({ success: true, cart });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -88,10 +94,131 @@ exports.updateQuantity = async (req, res) => {
     item.quantity = quantity;
     item.totalPrice = (item.service.price + addonsTotal) * quantity;
 
-    cart.grandTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
+    // Recalculate grand total (services + packages)
+    const servicesTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
+    const packagesTotal = cart.packages.reduce((sum, pkg) => sum + pkg.totalPrice, 0);
+    cart.grandTotal = servicesTotal + packagesTotal;
 
     await cart.save();
-    await cart.populate("items.service");
+    await cart.populate(["items.service", "packages.package"]);
+    res.status(200).json({ success: true, cart });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ➕ Add Package to Cart
+exports.addPackageToCart = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { packageId, quantity = 1 } = req.body;
+
+    const packageData = await Package.findById(packageId);
+    if (!packageData) {
+      return res.status(404).json({ success: false, message: "Package not found" });
+    }
+
+    // Calculate total price for this package
+    let totalPrice = packageData.price * quantity;
+    if (packageData.gstAmount) {
+      totalPrice += packageData.gstAmount * quantity;
+    }
+
+    // Find existing cart
+    let cart = await Cart.findOne({ user: userId });
+
+    if (!cart) {
+      cart = new Cart({ user: userId, items: [], packages: [] });
+    }
+
+    // Check if package already exists in cart
+    const existingPackage = cart.packages.find(
+      (pkg) => pkg.package.toString() === packageId
+    );
+
+    if (existingPackage) {
+      existingPackage.quantity += quantity;
+      existingPackage.totalPrice = existingPackage.totalPrice + totalPrice;
+    } else {
+      cart.packages.push({ package: packageId, quantity, totalPrice });
+    }
+
+    // Recalculate grand total
+    const servicesTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
+    const packagesTotal = cart.packages.reduce((sum, pkg) => sum + pkg.totalPrice, 0);
+    cart.grandTotal = servicesTotal + packagesTotal;
+
+    await cart.save();
+    await cart.populate([
+      { path: "items.service" },
+      { path: "packages.package" }
+    ]);
+    res.status(200).json({ success: true, cart });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// 🗑 Remove Package from Cart
+exports.removePackageFromCart = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { packageId } = req.params;
+
+    let cart = await Cart.findOne({ user: userId });
+    if (!cart) return res.status(404).json({ success: false, message: "Cart not found" });
+
+    cart.packages = cart.packages.filter(
+      (pkg) => pkg.package.toString() !== packageId
+    );
+
+    // Recalculate grand total
+    const servicesTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
+    const packagesTotal = cart.packages.reduce((sum, pkg) => sum + pkg.totalPrice, 0);
+    cart.grandTotal = servicesTotal + packagesTotal;
+
+    await cart.save();
+    await cart.populate([
+      { path: "items.service" },
+      { path: "packages.package" }
+    ]);
+    res.status(200).json({ success: true, cart });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ✏️ Update Package Quantity
+exports.updatePackageQuantity = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { packageId } = req.params;
+    const { quantity } = req.body;
+
+    let cart = await Cart.findOne({ user: userId }).populate(["items.service", "packages.package"]);
+    if (!cart) return res.status(404).json({ success: false, message: "Cart not found" });
+
+    const packageItem = cart.packages.find(
+      (pkg) => pkg.package._id.toString() === packageId
+    );
+    if (!packageItem) return res.status(404).json({ success: false, message: "Package not found in cart" });
+
+    if (quantity < 1) return res.status(400).json({ success: false, message: "Quantity must be at least 1" });
+
+    const packageData = packageItem.package;
+    packageItem.quantity = quantity;
+    packageItem.totalPrice = (packageData.price + (packageData.gstAmount || 0)) * quantity;
+
+    // Recalculate grand total
+    const servicesTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
+    const packagesTotal = cart.packages.reduce((sum, pkg) => sum + pkg.totalPrice, 0);
+    cart.grandTotal = servicesTotal + packagesTotal;
+
+    await cart.save();
+    await cart.populate([
+      { path: "items.service" },
+      { path: "packages.package" }
+    ]);
     res.status(200).json({ success: true, cart });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -106,18 +233,31 @@ exports.getCart = async (req, res) => {
       return res.status(401).json({ success: false, message: "Unauthorized: No user ID" });
     }
 
-    const cart = await Cart.findOne({ user: userId }).populate({
-      path: "items.service",
-      model: "Service"
-    });
+    const cart = await Cart.findOne({ user: userId }).populate([
+      {
+        path: "items.service",
+        model: "Service"
+      },
+      {
+        path: "packages.package",
+        model: "Package",
+        populate: {
+          path: "services",
+          model: "Service"
+        }
+      }
+    ]);
 
     if (!cart) {
-      return res.status(200).json({ success: true, cart: { items: [], grandTotal: 0 } });
+      return res.status(200).json({ 
+        success: true, 
+        cart: { items: [], packages: [], grandTotal: 0 } 
+      });
     }
 
     res.status(200).json({ success: true, cart });
   } catch (err) {
-    console.error("❌ Error in getCart:", err); // 👈 log full error
+    console.error("❌ Error in getCart:", err);
     res.status(500).json({ success: false, message: err.message || "Server error" });
   }
 };

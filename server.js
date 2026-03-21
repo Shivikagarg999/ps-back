@@ -17,6 +17,7 @@ const notificationRoutes = require("./routes/notification/notificationRoutes");
 const paymentRoutes = require("./routes/payment/paymentRoutes");
 const offerRoutes = require("./routes/offer/offerRoutes");
 const adminRoutes = require("./routes/admin/adminRoutes");
+const packageRoutes = require("./routes/package/package");
 const initPaymentCleanup = require("./utils/paymentCleanup");
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
@@ -31,6 +32,7 @@ app.use(
   cors({
     origin: (origin, callback) => {
       const allowedOrigins = [
+        "http://localhost:5000",
         "http://localhost:5173",
         "http://localhost:5174",
         "http://localhost:3000",
@@ -63,6 +65,7 @@ app.use("/api/user/referral", referralRoutes);
 app.use("/api/user/notifications", notificationRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/offers", offerRoutes);
+app.use("/api/packages", packageRoutes);
 app.use("/api/admin", adminRoutes);
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

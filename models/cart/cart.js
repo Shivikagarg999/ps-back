@@ -31,6 +31,24 @@ const cartSchema = new mongoose.Schema(
         },
       },
     ],
+    packages: [
+      {
+        package: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Package",
+          required: true,
+        },
+        quantity: {
+          type: Number,
+          default: 1,
+          min: 1,
+        },
+        totalPrice: {
+          type: Number,
+          required: true,
+        },
+      },
+    ],
     grandTotal: {
       type: Number,
       default: 0,
