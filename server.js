@@ -69,7 +69,9 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/offers", offerRoutes);
 app.use("/api/packages", packageRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/admin", adminRoutes);
 app.use("/api/admin-bookings", adminBookingRoutes);
+app.use("/admin-bookings", adminBookingRoutes);
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get("/health", (req, res) => {
