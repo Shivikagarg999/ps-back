@@ -65,61 +65,6 @@ const protect = require("../../middlewares/auth");
  */
 router.post("/login", authController.adminLogin);
 
-/**
- * @swagger
- * /api/admin/signup:
- *   post:
- *     summary: Create a new admin account (Secure)
- *     tags: [Admin Panel]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [name, email, phone, password, adminSecretKey]
- *             properties:
- *               name:
- *                 type: string
- *                 example: Admin Name
- *               email:
- *                 type: string
- *                 example: admin@prettysaheli.com
- *               phone:
- *                 type: string
- *                 example: "9876543210"
- *               password:
- *                 type: string
- *                 example: securepassword
- *               adminSecretKey:
- *                 type: string
- *                 example: PrettySaheliAdmin2026
- *     responses:
- *       201:
- *         description: Admin created successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *                 user:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: string
- *                     name:
- *                       type: string
- *                     email:
- *                       type: string
- *                     role:
- *                       type: string
- *       401:
- *         description: Unauthorized - Invalid secret key
- */
 router.post("/signup", authController.adminSignup);
 
 

@@ -54,13 +54,14 @@ exports.adminSignup = async (req, res) => {
             return res.status(401).json({ success: false, message: "Unauthorized: Invalid admin secret key" });
         }
 
-        if (!name || !email || !phone || !password) {
+        if (!name || !email || !password) {
             return res.status(400).json({ success: false, message: "All fields are required" });
         }
 
-        const existingUser = await User.findOne({
-            $or: [{ email }, { phone }]
-        });
+        const orConditions = [{ email }];
+        if (phone) orConditions.push({ phone });
+
+        const existingUser = await User.findOne({ $or: orConditions });
 
         if (existingUser) {
             return res.status(400).json({ success: false, message: "Email or phone already registered" });

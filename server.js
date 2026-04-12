@@ -18,6 +18,7 @@ const paymentRoutes = require("./routes/payment/paymentRoutes");
 const offerRoutes = require("./routes/offer/offerRoutes");
 const adminRoutes = require("./routes/admin/adminRoutes");
 const packageRoutes = require("./routes/package/package");
+const adminBookingRoutes = require("./routes/adminBooking/adminBooking");
 const initPaymentCleanup = require("./utils/paymentCleanup");
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
@@ -68,6 +69,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/offers", offerRoutes);
 app.use("/api/packages", packageRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/admin-bookings", adminBookingRoutes);
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get("/health", (req, res) => {
