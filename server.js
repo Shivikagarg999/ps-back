@@ -27,7 +27,6 @@ connectDB();
 initPaymentCleanup();
 
 const app = express();
-app.use(express.json());
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -40,8 +39,6 @@ const corsOptions = {
       "https://www.prettysaheli.com",
       "https://ps-admin-front.vercel.app",
       "https://admin.prettysaheli.com",
-      
-      "https://admin.prettysaheli.com/login",
       "https://www.admin.prettysaheli.com",
       "https://ps-admin-front-6e2s.vercel.app"
     ];
@@ -56,9 +53,10 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
-// Respond to preflight OPTIONS requests for every route
+// CORS must come before any other middleware
 app.options(/.*/, cors(corsOptions));
 app.use(cors(corsOptions));
+app.use(express.json());
 
 app.use("/api/categories", categoryRoutes);
 app.use("/api/services", serviceRoutes);
@@ -91,6 +89,7 @@ app.use((err, req, res, next) => {
   console.error("🔥Backend Error:", err.stack);
   res.status(500).json({ success: false, message: err.message });
 });
+
 app.get('/', (req, res) => {
   res.send('✨Welcome to Pretty Saheli Backend. Server is running.✨');
 });
