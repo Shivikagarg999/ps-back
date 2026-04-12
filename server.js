@@ -55,7 +55,7 @@ const corsOptions = {
 };
 
 // Respond to preflight OPTIONS requests for every route
-app.options("*", cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 app.use(cors(corsOptions));
 
 app.use("/api/categories", categoryRoutes);
