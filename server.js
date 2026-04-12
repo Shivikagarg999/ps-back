@@ -40,6 +40,8 @@ const corsOptions = {
       "https://www.prettysaheli.com",
       "https://ps-admin-front.vercel.app",
       "https://admin.prettysaheli.com",
+      
+      "https://admin.prettysaheli.com/login",
       "https://www.admin.prettysaheli.com",
       "https://ps-admin-front-6e2s.vercel.app"
     ];
