@@ -33,24 +33,23 @@ function parseNum(str) {
 
 // Map spreadsheet header names → model field names
 const HEADER_MAP = {
-  "booking id":                 "bookingId",
-  "customer name":              "customerName",
-  "phone number":               "phoneNumber",
-  "full address":               "fullAddress",
-  "booking type":               "bookingType",
-  "booking date":               "bookingDate",
-  "service date":               "serviceDate",
-  "service time slot":          "serviceTimeSlot",
-  "services booked":            "servicesBooked",
-  "assigned beautician name":   "assignedBeauticianName",
-  "booking status":             "bookingStatus",
-  "beautician payout":          "beauticianPayout",
-  "service amount":             "serviceAmount",
-  "gst amount":                 "gstAmount",
-  "total amount":               "totalAmount",
-  "payment mode":               "paymentMode",
-  "payment status":             "paymentStatus",
-  "remarks":                    "remarks",
+  "booking id":           "bookingId",
+  "name":                 "name",
+  "phone number":         "phoneNumber",
+  "address":              "address",
+  "type":                 "type",
+  "booking date":         "bookingDate",
+  "service date":         "serviceDate",
+  "service time slot":    "serviceTimeSlot",
+  "services":             "services",
+  "beautician":           "beautician",
+  "status":               "status",
+  "amount":               "amount",
+  "beautician payout":    "beauticianPayout",
+  "company amount":       "companyAmount",
+  "payment mode":         "paymentMode",
+  "payment status":       "paymentStatus",
+  "remarks":              "remarks",
 };
 
 const VALID_BOOKING_STATUS  = ["Pending", "Confirmed", "Completed", "Cancelled", "Rescheduled", "In progress"];
@@ -93,43 +92,46 @@ exports.importAdminBookings = async (req, res) => {
       const bid = (row.bookingId || "").trim();
       if (!bid || bid.toLowerCase() === "booking id") continue;
 
-      const rawType = (row.bookingType || "").trim().toLowerCase();
-      const bookingType = VALID_BOOKING_TYPE.includes(rawType) ? rawType : null;
+      const rawType = (row.type || "").trim().toLowerCase();
+      const type = VALID_BOOKING_TYPE.includes(rawType) ? rawType : null;
 
-      const bookingDate   = parseDate(row.bookingDate);
-      const serviceDate   = parseDate(row.serviceDate);
-      const serviceAmount = parseNum(row.serviceAmount);
-      const totalAmount   = parseNum(row.totalAmount);
+      // Keep as strings for dates (format: "04-01-26")
+      const bookingDate = (row.bookingDate || "").trim();
+      const serviceDate = (row.serviceDate || "").trim();
+      const amount = parseNum(row.amount);
+      const companyAmount = parseNum(row.companyAmount);
 
       // Normalise enums — fall back to defaults if unrecognised
       const rawPaymentMode = (row.paymentMode || "").trim();
       const paymentMode = VALID_PAYMENT_MODE.includes(rawPaymentMode) ? rawPaymentMode : "UPI";
 
-      const rawBookingStatus = (row.bookingStatus || "").trim();
-      const bookingStatus = VALID_BOOKING_STATUS.includes(rawBookingStatus) ? rawBookingStatus : "Pending";
+      const rawStatus = (row.status || "").trim();
+      const status = VALID_BOOKING_STATUS.includes(rawStatus) ? rawStatus : "Pending";
 
       const rawPaymentStatus = (row.paymentStatus || "").trim();
       const paymentStatus = VALID_PAYMENT_STATUS.includes(rawPaymentStatus) ? rawPaymentStatus : "Pending";
 
+      // beauticianPayout can be a number or "N/A"
+      const beauticianPayout = parsePayout(row.beauticianPayout);
+
       const payload = {
-        bookingId:              bid,
-        customerName:           (row.customerName || "").trim(),
-        phoneNumber:            (row.phoneNumber || "").trim(),
-        fullAddress:            (row.fullAddress || "").trim(),
-        bookingType,
+        bookingId:      bid,
+        name:           (row.name || "").trim(),
+        phoneNumber:    (row.phoneNumber || "").trim(),
+        address:        (row.address || "").trim(),
+        type,
         bookingDate,
         serviceDate,
-        serviceTimeSlot:        (row.serviceTimeSlot || "").trim(),
-        servicesBooked:         (row.servicesBooked || "").trim(),
-        assignedBeauticianName: (row.assignedBeauticianName || "").trim(),
-        bookingStatus,
-        beauticianPayout:       bookingType === "fixed" ? null : parsePayout(row.beauticianPayout),
-        serviceAmount,
-        gstAmount:              parseNum(row.gstAmount) ?? 0,
-        totalAmount,
+        serviceTimeSlot: (row.serviceTimeSlot || "").trim(),
+        services:       (row.services || "").trim(),
+        beautician:     (row.beautician || "").trim(),
+        status,
+        amount,
+        beauticianPayout,
+        companyAmount,
         paymentMode,
         paymentStatus,
-        remarks:                (row.remarks || "").trim(),
+        remarks:        (row.remarks || "").trim(),
       };
 
       try {
@@ -162,45 +164,54 @@ exports.importAdminBookings = async (req, res) => {
 exports.createAdminBooking = async (req, res) => {
   try {
     const {
-      customerName,
+      bookingId,
+      name,
       phoneNumber,
-      fullAddress,
-      bookingType,
+      address,
+      type,
       bookingDate,
       serviceDate,
       serviceTimeSlot,
-      servicesBooked,
-      assignedBeauticianName,
-      bookingStatus,
+      services,
+      beautician,
+      status,
+      amount,
       beauticianPayout,
-      serviceAmount,
-      gstAmount,
-      totalAmount,
+      companyAmount,
       paymentMode,
       paymentStatus,
+      remarks
     } = req.body;
 
+    // Validate required fields
+    if (!bookingId || !type || !amount) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "bookingId, type, and amount are required" 
+      });
+    }
+
     const booking = new AdminBooking({
-      customerName,
+      bookingId,
+      name,
       phoneNumber,
-      fullAddress,
-      bookingType,
+      address,
+      type,
       bookingDate,
       serviceDate,
       serviceTimeSlot,
-      servicesBooked,
-      assignedBeauticianName,
-      bookingStatus,
-      beauticianPayout: bookingType === "fixed" ? null : beauticianPayout,
-      serviceAmount,
-      gstAmount,
-      totalAmount,
-      paymentMode,
-      paymentStatus,
+      services,
+      beautician,
+      status: status || "Pending",
+      amount,
+      beauticianPayout: type === "fixed" ? null : beauticianPayout,
+      companyAmount: companyAmount || 0,
+      paymentMode: paymentMode || "UPI",
+      paymentStatus: paymentStatus || "Pending",
+      remarks
     });
 
     await booking.save();
-
     res.status(201).json({ success: true, data: booking });
   } catch (err) {
     console.error("Error creating admin booking:", err);
@@ -211,17 +222,19 @@ exports.createAdminBooking = async (req, res) => {
 // GET ALL (with optional filters)
 exports.getAllAdminBookings = async (req, res) => {
   try {
-    const { bookingStatus, paymentStatus, bookingType, from, to } = req.query;
+    const { status, paymentStatus, type, from, to } = req.query;
 
     const filter = {};
 
-    if (bookingStatus) filter.bookingStatus = bookingStatus;
+    if (status) filter.status = status;
     if (paymentStatus) filter.paymentStatus = paymentStatus;
-    if (bookingType) filter.bookingType = bookingType;
+    if (type) filter.type = type;
+    
+    // Filter by date range (using string dates in format "04-01-26")
     if (from || to) {
       filter.serviceDate = {};
-      if (from) filter.serviceDate.$gte = new Date(from);
-      if (to) filter.serviceDate.$lte = new Date(to);
+      if (from) filter.serviceDate.$gte = from;
+      if (to) filter.serviceDate.$lte = to;
     }
 
     const bookings = await AdminBooking.find(filter).sort({ createdAt: -1 });
@@ -267,22 +280,22 @@ exports.updateAdminBooking = async (req, res) => {
     }
 
     const updatableFields = [
-      "customerName",
+      "name",
       "phoneNumber",
-      "fullAddress",
-      "bookingType",
+      "address",
+      "type",
       "bookingDate",
       "serviceDate",
       "serviceTimeSlot",
-      "servicesBooked",
-      "assignedBeauticianName",
-      "bookingStatus",
+      "services",
+      "beautician",
+      "status",
       "beauticianPayout",
-      "serviceAmount",
-      "gstAmount",
-      "totalAmount",
+      "amount",
+      "companyAmount",
       "paymentMode",
       "paymentStatus",
+      "remarks"
     ];
 
     updatableFields.forEach((field) => {
@@ -291,8 +304,8 @@ exports.updateAdminBooking = async (req, res) => {
       }
     });
 
-    // If bookingType changed to fixed, clear payout
-    if (req.body.bookingType === "fixed") {
+    // If type changed to fixed, clear payout
+    if (req.body.type === "fixed") {
       booking.beauticianPayout = null;
     }
 

@@ -5,98 +5,94 @@ const adminBookingSchema = new mongoose.Schema(
     bookingId: {
       type: String,
       unique: true,
+      required: [true, "Booking ID is required"]
     },
 
-    customerName: {
+    name: {
       type: String,
-      default: "",
+      default: ""
     },
 
     phoneNumber: {
       type: String,
-      default: "",
+      default: ""
     },
 
-    fullAddress: {
+    address: {
       type: String,
-      default: "",
+      default: ""
     },
 
-    bookingType: {
+    type: {
       type: String,
       enum: ["commission", "fixed"],
-      default: null,
+      default: null
     },
 
     bookingDate: {
-      type: Date,
-      default: null,
+      type: String,  // Format: "04-01-26"
+      default: ""
     },
 
     serviceDate: {
-      type: Date,
-      default: null,
+      type: String,  // Format: "04-01-26"
+      default: ""
     },
 
     serviceTimeSlot: {
-      type: String,
-      default: "",
+      type: String,  // Format: "2 pm - 4 pm"
+      default: ""
     },
 
-    servicesBooked: {
-      type: String,
-      default: "",
+    services: {
+      type: String,  // Description of services like "Honey wax (underarms, full arms, full legs), threading (eyebrow, upper…"
+      default: ""
     },
 
-    assignedBeauticianName: {
-      type: String,
-      default: "",
+    beautician: {
+      type: String,  // Beautician name
+      default: ""
     },
 
-    bookingStatus: {
+    status: {
       type: String,
       enum: ["Pending", "Confirmed", "Completed", "Cancelled", "Rescheduled", "In progress"],
-      default: "Pending",
+      default: "Pending"
+    },
+
+    amount: {
+      type: Number,  // Total booking amount
+      default: 0,
+      min: 0
     },
 
     beauticianPayout: {
-      type: Number,
-      default: null,
+      type: mongoose.Schema.Types.Mixed,  // Can be number or "N/A"
+      default: null
     },
 
-    serviceAmount: {
-      type: Number,
-      default: null,
-      min: 0,
-    },
-
-    gstAmount: {
-      type: Number,
+    companyAmount: {
+      type: Number,  // Amount company earns
       default: 0,
-    },
-
-    totalAmount: {
-      type: Number,
-      default: null,
-      min: 0,
+      min: 0
     },
 
     paymentMode: {
       type: String,
       enum: ["UPI", "COD", "Cash", "Card", "Online"],
-      default: null,
+      default: null
     },
 
     paymentStatus: {
       type: String,
       enum: ["Paid", "Pending", "Failed"],
-      default: "Pending",
+      default: "Pending"
     },
 
     remarks: {
       type: String,
-      default: "",
-    },
+      default: ""
+    }
   },
   { timestamps: true }
 );

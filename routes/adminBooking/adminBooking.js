@@ -27,58 +27,53 @@ const upload = require("../../middlewares/upload");
  *       properties:
  *         _id:
  *           type: string
- *           example: 661f2c3e4d5e6f7a8b9c0d1e
+ *           example: 69dfd9229d294a16c1b575e9
  *         bookingId:
  *           type: string
- *           example: PS-2026-0030
- *         customerName:
+ *           example: PS-2026-0032
+ *         name:
  *           type: string
- *           example: Punam Giri
+ *           example: Kanika
  *         phoneNumber:
  *           type: string
- *           example: "9871474248"
- *         fullAddress:
+ *           example: "9289214121"
+ *         address:
  *           type: string
- *           example: ITC maurya chanakyapuri
- *         bookingType:
+ *           example: Ace divino T10, 002 noida
+ *         type:
  *           type: string
  *           enum: [commission, fixed]
  *           example: commission
  *         bookingDate:
  *           type: string
- *           format: date
- *           example: "2026-01-04"
+ *           example: "04-01-26"
  *         serviceDate:
  *           type: string
- *           format: date
- *           example: "2026-01-04"
+ *           example: "04-01-26"
  *         serviceTimeSlot:
  *           type: string
- *           example: 3 pm - 5 pm
- *         servicesBooked:
+ *           example: "2 pm - 4 pm"
+ *         services:
  *           type: string
- *           example: Saree draping
- *         assignedBeauticianName:
+ *           example: "Honey wax (underarms, full arms, full legs), threading (eyebrow, upper…"
+ *         beautician:
  *           type: string
- *           example: Arti Mehta
- *         bookingStatus:
+ *           example: Deepika
+ *         status:
  *           type: string
- *           enum: [Pending, Confirmed, Completed, Cancelled]
+ *           enum: [Pending, Confirmed, Completed, Cancelled, Rescheduled, In progress]
  *           example: Completed
+ *         amount:
+ *           type: number
+ *           example: 649
  *         beauticianPayout:
- *           type: number
+ *           type: [number, string]
  *           nullable: true
- *           description: Null for fixed-type bookings
- *           example: 400
- *         serviceAmount:
+ *           description: Number for commission type, "N/A" or null for fixed type
+ *           example: 340
+ *         companyAmount:
  *           type: number
- *           example: 558
- *         gstAmount:
- *           type: number
- *           example: 148
- *         totalAmount:
- *           type: number
- *           example: 706
+ *           example: 309
  *         paymentMode:
  *           type: string
  *           enum: [UPI, COD, Cash, Card, Online]
@@ -87,6 +82,9 @@ const upload = require("../../middlewares/upload");
  *           type: string
  *           enum: [Paid, Pending, Failed]
  *           example: Paid
+ *         remarks:
+ *           type: string
+ *           example: ""
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -97,60 +95,59 @@ const upload = require("../../middlewares/upload");
  *     AdminBookingInput:
  *       type: object
  *       required:
- *         - bookingType
+ *         - bookingId
+ *         - type
  *         - bookingDate
  *         - serviceDate
- *         - serviceAmount
- *         - totalAmount
+ *         - amount
  *         - paymentMode
  *       properties:
- *         customerName:
+ *         bookingId:
  *           type: string
- *           example: Punam Giri
+ *           example: PS-2026-0032
+ *         name:
+ *           type: string
+ *           example: Kanika
  *         phoneNumber:
  *           type: string
- *           example: "9871474248"
- *         fullAddress:
+ *           example: "9289214121"
+ *         address:
  *           type: string
- *           example: ITC maurya chanakyapuri
- *         bookingType:
+ *           example: Ace divino T10, 002 noida
+ *         type:
  *           type: string
  *           enum: [commission, fixed]
  *           example: commission
  *         bookingDate:
  *           type: string
- *           format: date
- *           example: "2026-01-04"
+ *           example: "04-01-26"
  *         serviceDate:
  *           type: string
- *           format: date
- *           example: "2026-01-04"
+ *           example: "04-01-26"
  *         serviceTimeSlot:
  *           type: string
- *           example: 3 pm - 5 pm
- *         servicesBooked:
+ *           example: "2 pm - 4 pm"
+ *         services:
  *           type: string
- *           example: Saree draping
- *         assignedBeauticianName:
+ *           example: "Full body wax"
+ *         beautician:
  *           type: string
- *           example: Arti Mehta
- *         bookingStatus:
+ *           example: Sakshi
+ *         status:
  *           type: string
- *           enum: [Pending, Confirmed, Completed, Cancelled]
+ *           enum: [Pending, Confirmed, Completed, Cancelled, Rescheduled, In progress]
  *           default: Pending
+ *           example: Completed
+ *         amount:
+ *           type: number
+ *           example: 999
  *         beauticianPayout:
+ *           type: [number, string]
+ *           description: Number for commission type, null/"N/A" for fixed type
+ *           example: 340
+ *         companyAmount:
  *           type: number
- *           description: Required for commission type; leave empty for fixed type
- *           example: 400
- *         serviceAmount:
- *           type: number
- *           example: 558
- *         gstAmount:
- *           type: number
- *           example: 148
- *         totalAmount:
- *           type: number
- *           example: 706
+ *           example: 309
  *         paymentMode:
  *           type: string
  *           enum: [UPI, COD, Cash, Card, Online]
@@ -159,6 +156,10 @@ const upload = require("../../middlewares/upload");
  *           type: string
  *           enum: [Paid, Pending, Failed]
  *           default: Pending
+ *           example: Paid
+ *         remarks:
+ *           type: string
+ *           example: ""
  */
 
 /**
@@ -166,7 +167,7 @@ const upload = require("../../middlewares/upload");
  * /api/admin-bookings:
  *   post:
  *     summary: Create a new admin booking record
- *     description: Booking ID (PS-YYYY-XXXX) is auto-generated. For fixed bookingType, beauticianPayout is automatically set to null.
+ *     description: Create a manual booking record. Booking ID is auto-generated if not provided.
  *     tags: [AdminBookings]
  *     requestBody:
  *       required: true
@@ -175,20 +176,20 @@ const upload = require("../../middlewares/upload");
  *           schema:
  *             $ref: '#/components/schemas/AdminBookingInput'
  *           example:
- *             customerName: Punam Giri
- *             phoneNumber: "9871474248"
- *             fullAddress: ITC maurya chanakyapuri
- *             bookingType: commission
- *             bookingDate: "2026-01-04"
- *             serviceDate: "2026-01-04"
- *             serviceTimeSlot: 3 pm - 5 pm
- *             servicesBooked: Saree draping
- *             assignedBeauticianName: Arti Mehta
- *             bookingStatus: Completed
- *             beauticianPayout: 400
- *             serviceAmount: 558
- *             gstAmount: 148
- *             totalAmount: 706
+ *             bookingId: PS-2026-0032
+ *             name: Kanika
+ *             phoneNumber: "9289214121"
+ *             address: Ace divino T10, 002 noida
+ *             type: commission
+ *             bookingDate: "04-01-26"
+ *             serviceDate: "04-01-26"
+ *             serviceTimeSlot: "2 pm - 4 pm"
+ *             services: "Honey wax (underarms, full arms, full legs), threading (eyebrow, upper…"
+ *             beautician: Deepika
+ *             status: Completed
+ *             amount: 649
+ *             beauticianPayout: 340
+ *             companyAmount: 309
  *             paymentMode: UPI
  *             paymentStatus: Paid
  *     responses:
@@ -206,17 +207,6 @@ const upload = require("../../middlewares/upload");
  *                   $ref: '#/components/schemas/AdminBooking'
  *       400:
  *         description: Missing required fields
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: bookingType, bookingDate, serviceDate, serviceAmount, totalAmount, and paymentMode are required
  *       500:
  *         description: Server error
  *
@@ -226,10 +216,10 @@ const upload = require("../../middlewares/upload");
  *     tags: [AdminBookings]
  *     parameters:
  *       - in: query
- *         name: bookingStatus
+ *         name: status
  *         schema:
  *           type: string
- *           enum: [Pending, Confirmed, Completed, Cancelled]
+ *           enum: [Pending, Confirmed, Completed, Cancelled, Rescheduled, In progress]
  *         description: Filter by booking status
  *       - in: query
  *         name: paymentStatus
@@ -238,7 +228,7 @@ const upload = require("../../middlewares/upload");
  *           enum: [Paid, Pending, Failed]
  *         description: Filter by payment status
  *       - in: query
- *         name: bookingType
+ *         name: type
  *         schema:
  *           type: string
  *           enum: [commission, fixed]
